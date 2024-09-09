@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 sys.path.insert(1, '../../ode/python/')
 import ode
 
-qe = 1.60217662e-19
+qe = -1.60217662e-19
 me = 9.10938356e-31
 mp = 1.6726219e-27
 
