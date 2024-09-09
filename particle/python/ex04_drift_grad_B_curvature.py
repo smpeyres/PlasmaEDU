@@ -5,14 +5,19 @@ import matplotlib.pyplot as plt
 sys.path.insert(1, '../../ode/python/')
 import ode
 
-qe = 1.60217662e-19
+# charge [C] and mass [kg] of electron
+qe = -1.60217662e-19
 me = 9.10938356e-31
+
+# charge [C] and mass [kg] of proton
+qp = 1.60217662e-19
 mp = 1.6726219e-27
-KB = 1.38064852e-23
 
-# Charge-to-mass ratio (q/m)
-qm = qe/mp
+# Change p's to e's for electron instead of proton
+qm  = qp/mp
 
+# Boltzmann's constant [J/K]
+kB = 1.38064852e-23
 
 def Efield(x,y,z):
     Ex = 0.0
@@ -58,7 +63,7 @@ def main():
 
     # Thermal speed
     T_eV = 1.0
-    v_th = np.sqrt(2*KB*T_eV*11600/mp)
+    v_th = np.sqrt(2*kB*T_eV*11600/mp)
 
     # Initial velocity [m/s]
     vy0 = v_th
