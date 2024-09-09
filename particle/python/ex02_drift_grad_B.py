@@ -5,12 +5,16 @@ import matplotlib.pyplot as plt
 sys.path.insert(1, '../../ode/python/')
 import ode
 
-qe = 1.60217662e-19
+# charge [C] and mass [kg] of electron
+qe = -1.60217662e-19
 me = 9.10938356e-31
+
+# charge [C] and mass [kg] of proton
+qp = 1.60217662e-19
 mp = 1.6726219e-27
 
-# Charge-to-mass ratio (q/m)
-qm = qe/mp
+# Change p's to e's for electron instead of proton
+qm  = qp/mp
 
 
 def Efield(x,y,z):
