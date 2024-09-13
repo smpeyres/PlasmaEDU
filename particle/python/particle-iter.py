@@ -57,6 +57,32 @@ def psi_iter_like(R,Z):
 
         return Psi
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 def psi_matrix(R,Z):
 
         """
@@ -80,6 +106,67 @@ def psi_matrix(R,Z):
                         psi[i,j] = psi_iter_like(R[i],Z[j])
 
         return psi
+
+# generate the polodial field in radial coordinates
+def B_pol_rad(R,Z):
+
+        # number of steps
+        N_r = len(R)
+        N_z = len(Z)
+
+        # make empty matrices for each component
+        Br_pol = np.zeros((N_r,N_z))
+        Bz_pol = np.zeros((N_r,N_z))
+
+        # calculate the uniform step size
+        h_R = R[1] - R[0]
+        h_Z = Z[1] - Z[0]
+
+        psi = psi_matrix(R,Z)
+
+        # create empty matrix for psi
+        psi = np.zeros((N_r,N_z))
+
+        # loop over all points and evaluate Psi at each point
+        for i in range(0,len(R)):
+                for j in range(0,len(Z)):
+                        psi[i,j] = psi_iter_like(R[i],Z[j])
+
+        # bottom and top boundaries
+        for i in range(0,len(R)):
+                Br_pol[i, 0]  = (1/R[i])*(-3*psi[i,0] + 4*psi[i,1] - psi[i,2])/(2*h_Z)
+                Br_pol[i,-1] = (1/R[i])*(3*psi[i,-1] - 4*psi[i,-2] + psi[i,-3])/(2*h_Z)
+
+        # rest of domain
+        for i in range(0,len(R)):
+                for j in range(1,len(Z)-1):
+                        Br_pol[i, j]  = (1/R[i])*(psi[i,j+1] - psi[i,j-1])/(2*h_Z)
+
+
+        # left and right boundaries
+        for i in range(0,len(Z)):
+                Bz_pol[0, i]  = -(1/R[0])*(-3*psi[0,i] + 4*psi[1,i] - psi[2,i])/(2*h_R)
+                Bz_pol[-1,i] = -(1/R[-1])*(3*psi[-1,i] - 4*psi[-2,i] + psi[-3,i])/(2*h_R)
+
+        # rest of domain
+        for i in range(1,len(R)-1):
+                for j in range(0,len(Z)):
+                        Bz_pol[i, j]  = -(1/R[i])*(psi[i+1,j] - psi[i-1,j])/(2*h_R)
+
+        return Br_pol, Bz_pol
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 R0   = 6.2
 
@@ -107,7 +194,7 @@ def B_pol_rad(R,Z):
         Br_pol = np.zeros((N_r,N_z))
         Bz_pol = np.zeros((N_r,N_z))
 
-        # uniform step sizes -> this could be better
+        # uniform step sizes
         h_R = (R[-1] - R[0])/(N_r-1)
         h_Z = (Z[-1] - Z[0])/(N_z-1)
 
@@ -190,6 +277,8 @@ plt.ylabel('Z [m]')
 plt.title('Magnitude of Polodial Field [T]')
 plt.savefig('Bmag_polodial_iter_limited_test.png')
 
+"""
+
 # polodial field in cartestian
 # need to re-write the entire thing in order to have the proper # of indices
 def B_pol_cart(x,y,z):
@@ -271,8 +360,6 @@ print(B_pol_cart(X_limited,Y_limited,Z_limited))
 
 print(np.shape(B_pol_cart(X_limited,Y_limited,Z_limited)))
 
-
-"""
 
 def B_tor(x,y,z):
     B0 = 5.3 # on-axis according to wikipedia
