@@ -2,6 +2,9 @@ import sys
 import numpy as np
 import matplotlib.pyplot as plt
 
+
+
+"""
 # point-by-point input; does not accept vector/array inputs.
 def psi_iter_like(R,Z):
 
@@ -57,43 +60,16 @@ def psi_iter_like(R,Z):
 
         return Psi
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 def psi_matrix(R,Z):
 
-        """
-        psi = psi_iter_like(R,Z)
+        # psi = psi_iter_like(R,Z)
 
-        Note that this usage is innappropriate,
-        as psi_iter_like does not accept vector inputs.
-        Psi is evaluated at which point R,Z provided individually.
+        # Note that this usage is innappropriate,
+        # as psi_iter_like does not accept vector inputs.
+        # Psi is evaluated at which point R,Z provided individually.
 
-        Let's try a point-wise approach instead.
-        """
+        # Let's try a point-wise approach instead.
+
         N_r = len(R)
         N_z = len(Z)
 
@@ -124,14 +100,6 @@ def B_pol_rad(R,Z):
 
         psi = psi_matrix(R,Z)
 
-        # create empty matrix for psi
-        psi = np.zeros((N_r,N_z))
-
-        # loop over all points and evaluate Psi at each point
-        for i in range(0,len(R)):
-                for j in range(0,len(Z)):
-                        psi[i,j] = psi_iter_like(R[i],Z[j])
-
         # bottom and top boundaries
         for i in range(0,len(R)):
                 Br_pol[i, 0]  = (1/R[i])*(-3*psi[i,0] + 4*psi[i,1] - psi[i,2])/(2*h_Z)
@@ -154,19 +122,6 @@ def B_pol_rad(R,Z):
                         Bz_pol[i, j]  = -(1/R[i])*(psi[i+1,j] - psi[i-1,j])/(2*h_R)
 
         return Br_pol, Bz_pol
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 R0   = 6.2
 
@@ -242,23 +197,18 @@ plt.title('Axial Component of Polodial Field [T]')
 plt.savefig('BZ_polodial_iter_test.png')
 
 # generate the magnitude of the polodial field
-def B_pol_mag(R,Z):
-        N_r = len(R)
-        N_z = len(Z)
+def B_pol_mag_rad(R,Z):
 
-        Bpol_mag = np.zeros((N_r,N_z))
-        Br_pol = B_pol_rad(R,Z)[0]
-        Bz_pol = B_pol_rad(R,Z)[1]
+        B_pol = B_pol_rad(R,Z)
 
-        for i in range(0,len(R)):
-                for j in range(0,len(Z)):
-                        Bpol_mag[i,j] = np.sqrt(Br_pol[i,j]**2 + Bz_pol[i,j]**2)
+        Br_pol = B_pol[0]
+        Bz_pol = B_pol[1]
 
-        return Bpol_mag
+        return np.sqrt(Br_pol**2 + Bz_pol**2)
 
 plt.figure(4)
 RR,ZZ = np.meshgrid(R_vals/R0,Z_vals/R0)
-plt.contour(np.transpose(RR),np.transpose(ZZ),B_pol_mag(R_vals,Z_vals),100,cmap="RdBu_r")
+plt.contour(np.transpose(RR),np.transpose(ZZ),B_pol_mag_rad(R_vals,Z_vals),100,cmap="RdBu_r")
 plt.colorbar()
 plt.xlabel('R/R0')
 plt.ylabel('Z/R0')
@@ -270,14 +220,135 @@ Z_limited = np.linspace( -4, 4, 100 )
 
 plt.figure(5)
 RR,ZZ = np.meshgrid(R_limited,Z_limited)
-plt.contour(np.transpose(RR),np.transpose(ZZ),B_pol_mag(R_limited,Z_limited),100,cmap="RdBu_r")
+plt.contour(np.transpose(RR),np.transpose(ZZ),B_pol_mag_rad(R_limited,Z_limited),100,cmap="RdBu_r")
 plt.colorbar()
 plt.xlabel('R [m]')
 plt.ylabel('Z [m]')
 plt.title('Magnitude of Polodial Field [T]')
 plt.savefig('Bmag_polodial_iter_limited_test.png')
 
-"""
+# polodial field in Cartestian
+def B_pol_cart(x,y,z):
+        # Major radius (projection)
+        R = np.sqrt(x**2 + y**2)
+        B_pol = B_pol_rad(R,z)
+        # easy to assign z component
+        Bz_pol = B_pol[1]
+        # Okay, let's try the x and y components now
+        # Sin, Cos of particle position on (x,y) plane
+        # wait, do I believe this?
+        ca = x/R
+        sa = y/R
+        Bx_pol = -1*B_pol[0] * ca
+        By_pol = B_pol[0] * sa
+        return Bx_pol, By_pol, Bz_pol
+# note that Bx_pol is the polodial field along x-direction,
+# but it is still a function the radius and axial position
+
+# generate the magnitude of the polodial field
+def B_pol_mag_cart(x,y,z):
+
+        B_pol = B_pol_cart(x,y,z)
+
+        Bx_pol = B_pol[0]
+        By_pol = B_pol[1]
+        Bz_pol = B_pol[2]
+
+        return np.sqrt(Bx_pol**2 + By_pol**2 + Bz_pol**2)
+
+# okay, let's make X_limited and Y_limited
+X_limited = np.linspace(  4, 8, 100 )
+Y_limited = np.linspace(  4, 8, 100 )
+
+# this is not very 'limited', but it does provide a complete box
+# that contains the circle of radius R0
+
+# okay, let's check that it looks same along the positive x direction
+plt.figure(6)
+XX,ZZ = np.meshgrid(X_limited,Z_limited)
+plt.contour(np.transpose(XX),np.transpose(ZZ),B_pol_mag_cart(X_limited,0,Z_limited),100,cmap="RdBu_r")
+plt.colorbar()
+plt.xlabel('X [m]')
+plt.ylabel('Z [m]')
+plt.title('Magnitude of Polodial Field [T]')
+plt.savefig('Bmag_polodial_X_iter_limited_test.png')
+
+# okay, let's check that it looks same along the positive y direction
+plt.figure(7)
+YY,ZZ = np.meshgrid(Y_limited,Z_limited)
+plt.contour(np.transpose(YY),np.transpose(ZZ),B_pol_mag_cart(0,Y_limited,Z_limited),100,cmap="RdBu_r")
+plt.colorbar()
+plt.xlabel('Y [m]')
+plt.ylabel('Z [m]')
+plt.title('Magnitude of Polodial Field [T]')
+plt.savefig('Bmag_polodial_Y_iter_limited_test.png')
+
+# add torodial field
+def B_tor_rad(R,z):
+    B0 = 5.3 # on-axis according to wikipedia
+    R0 = 6.2
+    # Toroidal component [T]
+    Bphi_tor = B0 * R0 / R
+    Bz_tor =  Bphi * 0.0 # a little trick to get an array of zeros...
+
+    # Major radius (projection)
+
+
+
+    R = np.sqrt( x*x + y*y )
+
+
+
+    # Sin, Cos of particle position on (x,y) plane
+    ca = x/R
+    sa = y/R
+    # Toroidal component [T]
+    Bphi = B0 * R0 / R
+    # B-field [T]
+    Bx_tor = -1*Bphi * ca
+    By_tor =  Bphi * sa
+    Bz_tor =  Bphi * 0.0 # a little trick to get an array of zeros...
+    return Bx_tor, By_tor, Bz_tor
+
+# generate the magnitude of the torodial field
+def B_tor_mag_cart(x,y,z):
+
+        B_tor = B_tor_cart(x,y,z)
+
+        Bx_tor = B_tor[0]
+        By_tor = B_tor[1]
+        Bz_tor = B_tor[2]
+
+        return np.sqrt(Bx_tor**2 + By_tor**2 + Bz_tor**2)
+
+# okay, let's check that it looks same along the positive x direction
+plt.figure(8)
+XX,ZZ = np.meshgrid(X_limited,Z_limited)
+plt.contour(np.transpose(XX),np.transpose(ZZ),B_tor_mag_cart(X_limited,0,Z_limited),100,cmap="RdBu_r")
+plt.colorbar()
+plt.xlabel('X [m]')
+plt.ylabel('Z [m]')
+plt.title('Magnitude of Torodial Field [T]')
+plt.savefig('Bmag_torodial_X_iter_limited_test.png')
+
+# okay, let's check that it looks same along the positive y direction
+plt.figure(9)
+YY,ZZ = np.meshgrid(Y_limited,Z_limited)
+plt.contour(np.transpose(YY),np.transpose(ZZ),B_tor_mag_cart(0,Y_limited,Z_limited),100,cmap="RdBu_r")
+plt.colorbar()
+plt.xlabel('Y [m]')
+plt.ylabel('Z [m]')
+plt.title('Magnitude of Torodial Field [T]')
+plt.savefig('Bmag_torodial_Y_iter_limited_test.png')
+
+# total field
+def B_total_cart(x,y,z):
+        B_pol = B_pol_cart(x,y,z)
+        B_tor = B_tor_cart(x,y,z)
+        Bx = B_pol[0] + B_tor[0]
+        By = B_pol[1] + B_tor[1]
+        Bz = B_pol[2] + B_pol[2]
+        return Bx, By, Bz
 
 # polodial field in cartestian
 # need to re-write the entire thing in order to have the proper # of indices
@@ -410,30 +481,6 @@ plt.ylabel('Z/R0')
 plt.title('x Component of Polodial Field [T] (y = 0)')
 plt.savefig('Bx_iter_test.png')
 
-
-sys.path.insert(1, '../../ode/python/')
-import ode
-
-# physical constants
-qe = -1.60217662e-19
-qp = 1.60217662e-19
-me = 9.10938356e-31
-mp = 1.6726219e-27
-kB = 1.38064852e-23
-
-
-# ion mass
-Mi = 2*mp
-
-# Charge-to-mass ratio (q/m)
-qm = qp/Mi
-
-def Efield(x,y,z):
-    Ex = 0.0
-    Ey = 0.0
-    Ez = 0.0
-    return Ex, Ey, Ez
-
 # split Br_pol into x and y components
 Bx_pol = Br_pol/np.sqrt(2)
 By_pol = Br_pol/np.sqrt(2)
@@ -497,6 +544,36 @@ plt.ylabel('Z/R0')
 plt.title('z Component of Polodial Field [T]')
 plt.savefig('Bz_iter.png')
 
+"""
+
+# this is the particle portion
+
+sys.path.insert(1, '../../ode/python/')
+import ode
+
+# physical constants
+e =  1.60217662e-19 # elementary charge [C]
+me =  9.10938356e-31 # electron mass [kg]
+mDa = 1.66053906e-27 # unified atomic mass or Dalton [kg]
+mp =  1.6726219e-27 # mass of proton [kg]
+kB =  1.38064852e-23 # Boltzmann constant [J/K]
+
+A = 2.0141 # atomic mass of deuterium
+Mi = A*mDa # mass of ion [kg]
+Z = 1 # charge of ion
+
+# Charge-to-mass ratio (q/m)
+qm = Z*e/Mi
+
+# electric field
+def Efield(x,y,z):
+Ex = 0.0
+Ey = 0.0
+Ez = 0.0
+return Ex, Ey, Ez
+
+def Bfield(x,y,z):
+        return Bx, By, Bz
 
 
 def fun(t,X):
@@ -586,4 +663,4 @@ if __name__ == '__main__':
    main()
 
 
-"""
+
