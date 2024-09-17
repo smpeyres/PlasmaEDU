@@ -161,7 +161,7 @@ def B_tor_cart(x,y,z):
 # total magnetic field in cartestian
 def Bfield_cart(x,y,z):
   B_pol = B_pol_cart(x,y,z)
-  B_tor = B_pol_cart(x,y,z)
+  B_tor = B_tor_cart(x,y,z)
 
   Bx = B_pol[0] + B_tor[0]
   By = B_pol[1] + B_tor[1]
@@ -362,7 +362,7 @@ def main():
   X0 = np.array( [ x0, y0, z0, vx0, vy0, vz0 ] )
 
   # some characteristic B-field
-  B_char = 0.39 # guess for now
+  B_char = 5.3 # guess for now
   # if it's too low,
   # I think the integration time is too long and the Euler solution explodes
 
@@ -453,6 +453,7 @@ def main():
 
   plt.figure(9)
   plt.plot( R_rk4_2, z_rk4_2, 'k-')
+  plt.axis('equal')
   plt.xlabel('R, Radius [m]')
   plt.ylabel('Z, Vertical Coordinate [m]')
   plt.savefig('particle-iter-RZ-2.png')
@@ -468,14 +469,39 @@ def main():
 
   plt.figure(11)
   RR,ZZ = np.meshgrid(R_lim,Z_lim)
-  plt.contour(np.transpose(RR),np.transpose(ZZ),B_pol_mag_lim,100,cmap="RdBu_r")
+  plt.contour(np.transpose(RR),np.transpose(ZZ),psi_viz(R_lim,Z_lim),100,cmap="RdBu_r")
   plt.plot( R_rk4_2, z_rk4_2, 'k-')
   plt.xlim(5,8)
-  plt.ylim(-2,3)
+  plt.ylim(-2,2)
+  # plt.axis('equal')
   plt.colorbar()
   plt.xlabel('R, Radius [m]')
   plt.ylabel('Z, Vertical Coordinate [m]')
-  plt.savefig('particle-iter-RZ-field.png')
+  plt.savefig('particle-iter-RZ-field-wide.png')
+
+  plt.figure(12)
+  RR,ZZ = np.meshgrid(R_lim,Z_lim)
+  plt.contour(np.transpose(RR),np.transpose(ZZ),psi_viz(R_lim,Z_lim),100,cmap="RdBu_r")
+  plt.plot( R_rk4_2, z_rk4_2, 'k-')
+  plt.xlim(6,7)
+  plt.ylim(-1,1.5)
+  # plt.axis('equal')
+  plt.colorbar()
+  plt.xlabel('R, Radius [m]')
+  plt.ylabel('Z, Vertical Coordinate [m]')
+  plt.savefig('particle-iter-RZ-field-zoomed.png')
+
+  # plt.figure(13)
+  # RR,ZZ = np.meshgrid(R_lim,Z_lim)
+  # plt.contour(np.transpose(RR),np.transpose(ZZ),psi_viz(R_lim,Z_lim),100,cmap="RdBu_r")
+  # plt.plot( R_rk4_2, z_rk4_2, 'k-')
+  # plt.xlim(6.4,6.8)
+  # plt.ylim(-0.4,0)
+  # # plt.axis('equal')
+  # plt.colorbar()
+  # plt.xlabel('R, Radius [m]')
+  # plt.ylabel('Z, Vertical Coordinate [m]')
+  # plt.savefig('particle-iter-RZ-field-morezoomed.png')
 
 
 if __name__ == '__main__':
