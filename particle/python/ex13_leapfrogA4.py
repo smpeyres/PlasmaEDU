@@ -20,6 +20,38 @@ def fun(t,X):
   Xdot[1] = - 1 * x # assumes O = 1 for simplicity
   return Xdot
 
+# okay, now let's think about the leapfrog...
+# x_n+1 = x_n + v_n+1/2 dt
+# v_n+1/2 = v_n-1/2 + O^2 x_n dt
+# Use the def v_n = (v_n+1/2 - v_n-1/2)/2 to obtain
+# v_n = v_n-1/2 + 1/2 a dt
+# then, v_-1/2 = v_0 - 1/2 a_0 dt
+# where a = - O^2 x or Xdot[1]
+
+def leapfrog(fun, x, y0):
+  # following the basic structure of the functions in ode.py
+  N = np.size(x) # get number of timesteps
+  h = x[1] - x[0] # get size of timestep
+  I = np.size(y0) # number of initial values -> number of positions and velocities
+  y = np.zeros((N,I)) # make a matrix that contains position and velocity values for each timestep
+  # okay, let's make it clear what the first entries are:
+  # for position : n = 0
+  # for velocity : n = -1/2
+  # okay, we need to update y0
+  # I'll keep it as simple 1D problem for now
+  xn0, vn0 = y0
+  an0 = fun(0, [xn0, vn0])[1]
+  ynm12 = vn0 - 0.5*an0*h
+  y[0,:] = np.array([xn0,ynm12])
+
+  for n in range(0, N-1):
+    # update velocity first:
+    y[n+1,1] = y[n,1] + h*fun( x[n], y[n,:])[1]
+    # update position next:
+    y[n+1,0] = y[n,0] + h*y[n+1,1]
+  return y
+
+
 def main():
   x0 = 1
   v0 = 0
@@ -29,7 +61,9 @@ def main():
 
   X0 = np.array([x0,v0])
 
-  X_rk4 = ode.rk4(fun(freq=1), time, X0)
+  X_rk4 = ode.rk4(fun, time, X0)
+
+  X_leap = leapfrog(fun, time, X0)
 
   # okay, now let's think about the leapfrog...
   # x_n+1 = x_n + v_n+1/2 dt
@@ -51,6 +85,7 @@ def main():
   plt.figure(1)
   plt.plot(time_an/(2*np.pi), np.cos(time_an), '-', color='k', label="Analytical Solution")
   plt.plot(time/(2*np.pi), X_rk4[:,0], 'o', color='b', label="Runge-Kutta 4")
+  plt.plot(time/(2*np.pi), X_leap[:,0], 'o', color='r', label="Leapfrog w/o Freq. Corr.")
   plt.xlabel('time, $t\Omega/2\pi$')
   plt.ylabel('position, $x$')
   plt.legend()
