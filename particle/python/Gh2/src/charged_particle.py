@@ -354,8 +354,7 @@ def boris_long_integration_error_check(Nsteps_per_period = 15):
         np.abs(X[:,0] - analytic_s[:,0])[::Nsteps_per_period-1]/r_L,
         'b.-',
     )
-    plt.ylabel(' err($r_L$)')
-    plt.xlabel(' time($t\omega/2\pi$)')
+    plt.ylabel(' err($r_L \\Omega/2\\pi$)')
     plt.show()
 
 
@@ -430,7 +429,7 @@ def gh2_long_integration_error_check(Nsteps_per_period = 15):
         'b.-',
     )
     plt.ylabel(' err($r_L$)')
-    plt.xlabel(' time($t\omega/2\pi$)')
+    plt.xlabel(' time, $t\\Omega/2\\pi$')
     plt.show()
 
 
@@ -447,7 +446,15 @@ if __name__ == '__main__':
     }
     if len(sys.argv) != 2:
         boris_simple_larmor_check()
-    check = sys.argv[1].lower()
+        boris_long_integration_error_check()
+        gh2_simple_larmor_check()
+        gh2_long_integration_error_check()
+    # Check if there is at least one command-line argument
+    if len(sys.argv) > 1:
+        check = sys.argv[1].lower()  # Access the first command-line argument
+    else:
+        print("No command-line argument provided. Please specify an option.")
+        sys.exit(1)  # Exit the script if no argument is provided
     if check not in _checks:
         print('\nplease specify one of: ["%s"]' % '", "'.join(_checks.keys()))
         sys.exit(1)
