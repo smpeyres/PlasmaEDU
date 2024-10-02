@@ -1,13 +1,19 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from src import charged_particle
+import os
+import sys
 import util
 
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
+
+print(sys.path)  # Check if src is being appended correctly
+
+import charged_particle
 
 '''
 This script produces a plot comparing the absolute error of the x coordinate
 of a test charge in a simple larmor gyration. The error is determined
-by comparing the results with the analytic solution (a circle). 
+by comparing the results with the analytic solution (a circle).
 
 The test charge is placed in a static, uniform electromagnetic field
 (E and B both pointing in the +z direction).
@@ -68,8 +74,8 @@ def boris_gh2_error_comparison(Nsteps_per_period=15):
     plt.ylabel('err ($r_L$)')
     plt.xlabel('time $t\omega/2\pi$')
     plt.legend(loc=4)
-    plt.show()
     plt.savefig('images/boris_gh2_error_comparison.png')
+    plt.show()
 
 
 if __name__ == '__main__':

@@ -1,7 +1,14 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from src import charged_particle
+import os
+import sys
 import util
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
+
+print(sys.path)  # Check if src is being appended correctly
+
+import charged_particle
 
 '''
 [1] He, Yang, et al. “Volume-Preserving Algorithms for Charged Particle
@@ -89,6 +96,7 @@ def boris_on_banana_orbit():
     plt.grid()
     #plt.show()
     plt.savefig('images/boris_banana.png')
+    plt.show()
 
 
 def gh2_on_banana_orbit():
@@ -134,9 +142,10 @@ def gh2_on_banana_orbit():
     plt.grid()
     #plt.show()
     plt.savefig('images/gh2_banana.png')
+    plt.show()
 
 
 if __name__ == '__main__':
     util.mkdir('images')
-    #boris_on_banana_orbit()
+    boris_on_banana_orbit()
     gh2_on_banana_orbit()

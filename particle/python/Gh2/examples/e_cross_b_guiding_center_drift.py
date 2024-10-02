@@ -1,7 +1,14 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from src import charged_particle
+import os
+import sys
 import util
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
+
+print(sys.path)  # Check if src is being appended correctly
+
+import charged_particle
 
 '''
 [1] He, Yang, et al. “Volume-Preserving Algorithms for Charged Particle
@@ -82,11 +89,11 @@ def boris_long_e_cross_b_drift():
     plt.title('Larmor Gyration and Guided Center Drive of Test Charge')
     plt.xlabel('X (normalized)')
     plt.ylabel('Y (normalized)')
-    plt.show()
     plt.savefig(
         'images/boris_e_cross_b_drift_rev_%d.png' % Nrevolutions,
         dpi = 150,
     )
+    plt.show()
 
 
 def gh2_long_e_cross_b_drift():
@@ -122,14 +129,14 @@ def gh2_long_e_cross_b_drift():
     plt.title('Larmor Gyration and Guided Center Drive of Test Charge')
     plt.xlabel('X (normalized)')
     plt.ylabel('Y (normalized)')
-    plt.show()
     plt.savefig(
         'images/gh2_e_cross_b_drift_rev_%d.png' % Nrevolutions,
         dpi = 150,
     )
+    plt.show()
 
 
 if __name__ == '__main__':
     util.mkdir('images')
-    #boris_long_e_cross_b_drift()
+    boris_long_e_cross_b_drift()
     gh2_long_e_cross_b_drift()

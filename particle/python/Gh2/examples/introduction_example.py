@@ -1,11 +1,16 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from functools import partial
-
-from src import charged_particle
+import os
+import sys
 import util
 
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
 
+print(sys.path)  # Check if src is being appended correctly
+
+import charged_particle
+
+from functools import partial
 
 '''
 This script produces a plot comparing the absolute error of the x coordinate
@@ -106,10 +111,10 @@ def introductory_example(Nsteps_per_period=15):
         label = 'Boris-Bunemann',
     )
     plt.ylabel('err ($r_L$)')
-    plt.xlabel('time $t\omega/2\pi$')
+    plt.xlabel('time $t\\omega/2\\pi$')
     plt.legend(loc=4)
-    plt.show()
     plt.savefig('images/introductory_example.png')
+    plt.show()
 
 
 if __name__ == '__main__':
