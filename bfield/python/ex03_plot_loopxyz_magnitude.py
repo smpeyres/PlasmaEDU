@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 
 # Current Loop
 Ra = 0.05
-I0 = 100.
+I0 = 100.0
 Nturns = 1
 Center = np.array([0,0,0])
 Angles = np.array([90,0,0]) * np.pi/180.0

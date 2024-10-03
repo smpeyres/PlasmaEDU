@@ -1,17 +1,76 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-import bfield 
+import bfield
 
-# Set up parameters for the helical coil - following Hagel et al
-Ra = 1.0e-3   # Radius of each loop [m] - 1 mm
-La = 2.0e-2  # Axial separation between turns [m] - 2 cm
-I0 = 1.0  # Current in the wire [A] 
+# Set up parameters for the helical coil - following Tominaka
+Ra = 100.0e-3   # Radius of each loop [m] - 100 mm
+La = 50.0e-3  # Axial separation between turns [m] - 50 mm
+I0 = 1.0  # Current in the wire [A]
 phi0 = 0.0
+
+# X, Z Grid
+X = np.linspace(-200.0e-3, 200.0e-3, 50)
+Z = np.linspace(-300.0e-3, 300.0e-3, 75)
+
+# B-field magnitude
+Bnorm = np.zeros((X.size,Z.size))
+Bx_field = np.zeros((X.size,Z.size))
+By_field = np.zeros((X.size,Z.size))
+Bz_field = np.zeros((X.size,Z.size))
+for i in range(0,X.size):
+  for j in range(0,Z.size):
+    Bx,By,Bz = bfield.inf_helix_Tominaka(Ra, La, I0, phi0, x = X[i], y = 0.0, z = Z[j])
+    Bnorm[i][j] = np.sqrt(Bx*Bx + By*By + Bz*Bz)
+    Bx_field[i,j] = Bx
+    By_field[i,j] = By
+    Bz_field[i,j] = Bz
+
+plt.figure(1)
+XX,ZZ = np.meshgrid(X,Z)
+plt.contourf(np.transpose(XX),np.transpose(ZZ),Bnorm,30)
+plt.colorbar()
+plt.xlabel('X [m]')
+plt.ylabel('Z [m]')
+plt.title('B-field magnitude [T] of Infinite Helix')
+plt.savefig('ex11_plot_inf_helix_Tominaka_magnitude.png',dpi=600)
+plt.show()
+
+plt.figure(2)
+XX,ZZ = np.meshgrid(X,Z)
+plt.contourf(np.transpose(XX),np.transpose(ZZ),Bx_field,30)
+plt.colorbar()
+plt.xlabel('X [m]')
+plt.ylabel('Z [m]')
+plt.title('Bx [T] of Infinite Helix')
+plt.savefig('ex11_plot_inf_helix_Tominaka_x.png',dpi=600)
+plt.show()
+
+plt.figure(3)
+XX,ZZ = np.meshgrid(X,Z)
+plt.contourf(np.transpose(XX),np.transpose(ZZ),By_field,30)
+plt.colorbar()
+plt.xlabel('X [m]')
+plt.ylabel('Z [m]')
+plt.title('By [T] of Infinite Helix')
+plt.savefig('ex11_plot_inf_helix_Tominaka_y.png',dpi=600)
+plt.show()
+
+plt.figure(2)
+XX,ZZ = np.meshgrid(X,Z)
+plt.contourf(np.transpose(XX),np.transpose(ZZ),Bz_field,30)
+plt.colorbar()
+plt.xlabel('X [m]')
+plt.ylabel('Z [m]')
+plt.title('Bz [T] of Infinite Helix')
+plt.savefig('ex11_plot_inf_helix_Tominaka_z.png',dpi=600)
+plt.show()
+
+"""
 
 # z-values for figures 2 thru 4
 z_vals = np.linspace(0.0, 6.0e-2, 101)
-B_234 = bfield.inf_helix(Ra, La, I0, phi0, x = 1.0e-2, y = 0.0, z = z_vals)
+B_234 = bfield.inf_helix_Tominaka(Ra, La, I0, phi0, x = 1.0e-2, y = 0.0, z = z_vals)
 
 fig2 = plt.figure()
 plt.plot(z_vals/1.0e-2, B_234[0]/1.0e-6)
@@ -71,3 +130,5 @@ plt.xlim(0, 6)
 plt.ylim(0, 15)
 plt.draw()
 plt.savefig("Fig7_Hagel.png",dpi=600)
+
+"""
