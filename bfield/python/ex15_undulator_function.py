@@ -11,7 +11,7 @@ Npoints = 500
 phi0 = 0.0
 phase_shift = np.pi
 Center1 = np.array([0, 0, 0.0])
-Center2 = np.array([0, 0, 0.5*La/Nturns])  # Align both helices at the same center
+Center2 = np.array([0, 0, 0])  # Align both helices at the same center
 EulerAngles1 = np.array([0, 0, 0]) * np.pi / 180.0
 EulerAngles2 = np.array([0, 0, 0]) * np.pi / 180.0
 

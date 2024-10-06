@@ -22,11 +22,12 @@ Nturns = np.array([1, 2, 4, 8, 16, 32]) # number of turns
 
 h_num = La/Nturns
 
-h_vals = np.linspace(0, np.max(La/Nturns), 51)
+h_vals = np.linspace(0.001, np.max(La/Nturns), 51)
 
 phi0 = 0.0
 phase_shift = np.pi
-Center1 = np.array([0, 0, 0.0])
+Center1 = np.array([0.0, 0.0, 0.0])
+Center2 = np.array([0.0, 0.0, 0.0])
 
 EulerAngles1 = np.array([0, 0, 0]) * np.pi / 180.0
 EulerAngles2 = np.array([0, 0, 0]) * np.pi / 180.0
@@ -34,7 +35,7 @@ EulerAngles2 = np.array([0, 0, 0]) * np.pi / 180.0
 # Define the grid
 X_grid = np.array([0.0])
 Y_grid = np.array([0.0])
-Z_grid = np.linspace(0.0, La, 50)
+Z_grid = np.linspace(0.0, La, 100)
 
 # create empty dictionaries
 Bx_res = {}
@@ -50,8 +51,8 @@ Bz_mean = []
 Bz_max = []
 
 for N in Nturns:
-  # 50*N for 50 points per turn
-  Bx, By, Bz, filament1, filament2 = bfield.undulator(X_grid, Y_grid, Z_grid, I0, Ra, La, N, 50*N, phi0, phase_shift, Center1, np.array([0, 0, 0.5*La/N]), EulerAngles1, EulerAngles2)
+  # 100*N for 100 points per turn
+  Bx, By, Bz, filament1, filament2 = bfield.undulator(X_grid, Y_grid, Z_grid, I0, Ra, La, N, 100*N, phi0, phase_shift, Center1, Center2, EulerAngles1, EulerAngles2)
   Bx_res[f"Bx_{N}"] = Bx
   By_res[f"By_{N}"] = By
   Bz_res[f"Bz_{N}"] = Bz
@@ -61,6 +62,28 @@ for N in Nturns:
   By_max.append(np.max(By))
   Bz_mean.append(np.mean(Bz))
   Bz_max.append(np.max(Bz))
+
+  # # Create 3D figure
+  # fig = plt.figure(figsize=(10, 6))
+  # ax = fig.add_subplot(111, projection='3d')
+
+  # # Plot the first helix (red)
+  # ax.plot(filament1[0, :], filament1[1, :], filament1[2, :], 'r-', label='Helix 1')
+
+  # # Plot the second helix (cyan)
+  # ax.plot(filament2[0, :], filament2[1, :], filament2[2, :], 'c-', label='Helix 2')
+
+  # # Set axis labels
+  # ax.set_xlabel('X [m]')
+  # ax.set_ylabel('Y [m]')
+  # ax.set_zlabel('Z [m]')
+  # ax.set_title('3D Visualization of Staggered Helical Coils')
+
+  # # Add a legend
+  # ax.legend()
+
+  # # Enable rotation for interactive viewing
+  # plt.show()
 
 
 fig1 = plt.figure()
@@ -85,3 +108,21 @@ plt.xlabel("Z [m]")
 plt.legend()
 plt.savefig("M1-figs/undulator_components.png")
 plt.show()
+
+
+# Compute the fields from each helix individually
+Bx1, By1, Bz1, filament1 = bfield.helix(X_grid, Y_grid, Z_grid, I0, Ra, La, 4, 50*4, phi0, Center1, EulerAngles1)
+Bx2, By2, Bz2, filament2 = bfield.helix(X_grid, Y_grid, Z_grid, -1*I0, Ra, La, 4, 50*4, phi0 + phase_shift, Center2, EulerAngles2)
+
+# Plot By1 and By2 separately
+fig3 = plt.figure()
+plt.plot(Z_grid, np.squeeze(By1), label='By1 (Helix 1)', color='blue')
+plt.plot(Z_grid, np.squeeze(By2), label='By2 (Helix 2)', color='red')
+# plt.plot(Z_grid, np.squeeze(By1+By2), label='Sum',color='green')
+plt.title("By Component for Each Helix")
+plt.xlabel("Z [m]")
+plt.ylabel("By [T]")
+plt.legend()
+plt.show()
+
+

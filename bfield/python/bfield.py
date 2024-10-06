@@ -241,12 +241,12 @@ def helix(x, y, z, I0, Ra, La, Nturns, Npoints, phi0=0.0, Center=np.array([0,0,0
     """
 
     # generate primary parameter - azimuthal angle
-    phi = np.linspace(0, 2*np.pi*Nturns, Npoints)
+    phi = np.linspace(-2*np.pi, 2*np.pi*(Nturns+1), Npoints)
 
     # parametric equations
     X = Ra * np.cos(phi - phi0)
     Y = Ra * np.sin(phi - phi0)
-    Z = ((La/Nturns)/(2*np.pi))*(phi - phi0)
+    Z = ((La/Nturns)/(2*np.pi))*(phi)
 
     # create filament
     filament_local = np.vstack((X, Y, Z))
