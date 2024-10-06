@@ -73,3 +73,67 @@ ax.legend()
 
 # Enable rotation for interactive viewing
 plt.show()
+
+
+# Create plot for magnetic field magnitude |B| in the XZ-plane
+fig3 = plt.figure(figsize=(10, 6))
+contour = plt.contourf(XX, ZZ, Bx[:, j, :].T, levels=50, cmap='viridis')
+plt.colorbar(contour, label='|B| [T]')
+
+# Overlay the helical filaments with better colors
+plt.plot(filament1[0, :], filament1[2, :], 'r--', linewidth=1, label='Helix 1')
+plt.plot(filament2[0, :], filament2[2, :], 'cyan', linewidth=1, label='Helix 2')  # Use cyan for better visibility
+
+# Set plot labels and title
+plt.xlabel('X [m]')
+plt.ylabel('Z [m]')
+plt.title('Bx [T] and Staggered Helical Undulator in the XZ-plane')
+
+# Show legend once
+plt.legend()
+
+# Save and display the plot
+# plt.savefig('M1-figs/ex15_undulator_XZ_Bnorm_staggered.png', dpi=600)
+plt.show()
+
+# Create plot for magnetic field magnitude |B| in the XZ-plane
+fig4 = plt.figure(figsize=(10, 6))
+contour = plt.contourf(XX, ZZ, By[:, j, :].T, levels=50, cmap='viridis')
+plt.colorbar(contour, label='|B| [T]')
+
+# Overlay the helical filaments with better colors
+plt.plot(filament1[0, :], filament1[2, :], 'r--', linewidth=1, label='Helix 1')
+plt.plot(filament2[0, :], filament2[2, :], 'cyan', linewidth=1, label='Helix 2')  # Use cyan for better visibility
+
+# Set plot labels and title
+plt.xlabel('X [m]')
+plt.ylabel('Z [m]')
+plt.title('By [T] and Staggered Helical Undulator in the XZ-plane')
+
+# Show legend once
+plt.legend()
+
+# Save and display the plot
+# plt.savefig('M1-figs/ex15_undulator_XZ_Bnorm_staggered.png', dpi=600)
+plt.show()
+
+# Create plot for magnetic field magnitude |B| in the XZ-plane
+fig5 = plt.figure(figsize=(10, 6))
+contour = plt.contourf(XX, ZZ, Bz[:, j, :].T, levels=50, cmap='viridis')
+plt.colorbar(contour, label='|B| [T]')
+
+# Overlay the helical filaments with better colors
+plt.plot(filament1[0, :], filament1[2, :], 'r--', linewidth=1, label='Helix 1')
+plt.plot(filament2[0, :], filament2[2, :], 'cyan', linewidth=1, label='Helix 2')  # Use cyan for better visibility
+
+# Set plot labels and title
+plt.xlabel('X [m]')
+plt.ylabel('Z [m]')
+plt.title('Bz [T] and Staggered Helical Undulator in the XZ-plane')
+
+# Show legend once
+plt.legend()
+
+# Save and display the plot
+# plt.savefig('M1-figs/ex15_undulator_XZ_Bnorm_staggered.png', dpi=600)
+plt.show()
