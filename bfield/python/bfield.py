@@ -153,12 +153,44 @@ def makeloop( Ra, Center, EulerAngles, Npoints ):
 #         B[2] += dB[0,2]
 #     return B[0], B[1], B[2]
 
+# def biotsavart(filament, I0, point):
+#     """
+#     Compute the B-field at a given point due to a current filament using the Biot-Savart law.
+#     """
+#     mu0 = 4 * np.pi * 1e-7  # Vacuum permeability
+#     B = np.zeros((3, 1))     # Initialize B-field as a 3D vector
+
+#     # Loop over each segment of the filament
+#     for i in range(filament.shape[1] - 1):
+#         # Segment of filament
+#         dL = filament[:, i+1] - filament[:, i]
+
+#         # Position vector from the filament to the point of interest
+#         R = point[:, 0] - filament[:, i]
+
+#         # Compute the cross product dL x R
+#         dL_cross_R = np.cross(dL, R)
+
+#         # Distance from the filament segment to the point
+#         Rm = np.linalg.norm(R)  # Correct handling of R as a 1D vector
+
+#         # Apply Biot-Savart law to compute dB
+#         if Rm != 0:
+#             dB = (mu0 * I0 / (4 * np.pi * Rm**3)) * dL_cross_R
+#             B += dB[:, np.newaxis]  # Add dB to the total B-field
+
+#     return B[0], B[1], B[2]
+
 def biotsavart(filament, I0, point):
     """
     Compute the B-field at a given point due to a current filament using the Biot-Savart law.
     """
     mu0 = 4 * np.pi * 1e-7  # Vacuum permeability
     B = np.zeros((3, 1))     # Initialize B-field as a 3D vector
+
+    # Ensure point is a 2D array with shape (3, 1)
+    if point.ndim == 1:
+        point = point[:, np.newaxis]  # Reshape to (3, 1)
 
     # Loop over each segment of the filament
     for i in range(filament.shape[1] - 1):
@@ -180,7 +212,6 @@ def biotsavart(filament, I0, point):
             B += dB[:, np.newaxis]  # Add dB to the total B-field
 
     return B[0], B[1], B[2]
-
 
 
 def blines(y,x, filament, current):
@@ -235,12 +266,9 @@ def helix(x, y, z, I0, Ra, La, Nturns, Npoints, phi0=0.0, Center=np.array([0,0,0
         for j in range(len(y)):
             for k in range(len(z)):
                 point = np.array([x[i], y[j], z[k]])
-                Bfield = biotsavart(filament, I0, point)
-                Bx[i, j, k] = Bfield[0]
-                By[i, j, k] = Bfield[1]
-                Bz[i, j, k] = Bfield[2]
+                Bx[i, j, k], By[i, j, k], Bz[i, j, k] = biotsavart(filament, I0, point)
 
-    return Bx, By, Bz
+    return Bx, By, Bz, filament
 
 
 def inf_helix_Hagel(Ra,La,I0, phi0, x, y, z):

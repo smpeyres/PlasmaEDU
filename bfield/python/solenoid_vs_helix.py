@@ -1,13 +1,15 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-# x = NI/l
-# N = number of turns
+# n = number of turns per unit length
 # I = current
-# l = length of solenoid
-def analytical(N, I, l):
+def analytical(n, I):
   mu0 = 4 * np.pi * 1e-7
   return mu0*N*I/l
+
+
+
+
 
 N_num = np.array([5, 10, 20, 40, 80])
 B_num = np.array([0.00595, 0.0119, 0.0239, 0.0481, 0.09778])

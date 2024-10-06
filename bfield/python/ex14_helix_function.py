@@ -2,7 +2,6 @@ import numpy as np
 import bfield
 import matplotlib.pyplot as plt
 
-
 # Helical Solenoid Parameters
 I0 = 1000.0
 Ra = 0.05
@@ -14,11 +13,11 @@ Center = np.array([0, 0, 0.0])
 EulerAngles = np.array([0, 0, 0]) * np.pi / 180.0
 
 # Define the grid
-X_grid = np.linspace(-0.15, 0.15, 30)
-Y_grid = np.linspace(-0.15, 0.15, 30)
+X_grid = np.linspace(-0.10, 0.10, 20)
+Y_grid = np.linspace(-0.10, 0.10, 20)
 Z_grid = np.linspace(0.0, La, 50)
 
-Bx, By, Bz = bfield.helix(X_grid, Y_grid, Z_grid, I0, Ra, La, Nturns, Npoints, phi0, Center, EulerAngles)
+Bx, By, Bz, filament = bfield.helix(X_grid, Y_grid, Z_grid, I0, Ra, La, Nturns, Npoints, phi0, Center, EulerAngles)
 
 Bnorm = np.sqrt(Bx**2 + By**2 + Bz**2)
 
@@ -46,7 +45,7 @@ plt.title('Magnetic Field Magnitude [T] and Helical Current in the XZ-plane')
 plt.legend()
 
 # Save and display the plot
-plt.savefig('M1-figs/ex14_plot_helical_filament_XZ_Bnorm_fixed.png', dpi=150)
+plt.savefig('M1-figs/ex14_plot_helical_filament_XZ_Bnorm_fixed.png', dpi=600)
 plt.show()
 
 # Create the plot of Bz component in the XZ-plane at Y=Y_target
@@ -60,10 +59,10 @@ plt.plot(filament[0, :], filament[2, :], 'r--', linewidth=1)  # No label here
 # Set plot labels and title
 plt.xlabel('X [m]')
 plt.ylabel('Z [m]')
-plt.title('Magnetic Field Component Bz [T] in XZ-plane at Y={:.3f} m'.format(Y_grid[j]))
+plt.title('Magnetic Field Component Bz [T] and Helical Current in the XZ-plane')
 
 # Save and display the plot
-plt.savefig('M1-figs/ex14_plot_helical_filament_XZ_Bz_fixed.png', dpi=150)
+plt.savefig('M1-figs/ex14_plot_helical_filament_XZ_Bz_fixed.png', dpi=600)
 plt.show()
 
 # ------------------ Added Code for Average Bz along Z-axis ------------------
@@ -88,5 +87,5 @@ plt.ylabel('Bz [T]')
 plt.title('Bz Component along Z-axis at X=0, Y=0')
 plt.legend()
 plt.grid(True)
-plt.savefig('M1-figs/ex14_Bz_along_Z_axis_fixed.png', dpi=150)
+plt.savefig('M1-figs/ex14_Bz_along_Z_axis_fixed.png', dpi=600)
 plt.show()
