@@ -169,8 +169,49 @@ def blines(y,x, filament, current):
     dY[3] = 0.0
     return dY
 
+def helix(x, y, z, Ra, La, Nturns, Npoints, phi0=0.0, Center=np.array([0,0,0]), EulerAngles=np.array([0,0,0])):
+    """
+    Generate a helical filament representing a finite solenoid.
 
+    Ra = radius of helix
+    La = length of helix
+    Nturns = number of turns of the helix
+    Npoints = number of points resolved
+    phi0 = azimuthal angle at which helix intersects XY plane
+    """
 
+    # generate primary parameter - azimuthal angle
+    phi = np.linspace(0, 2*np.pi*Nturns, Npoints)
+
+    # parametric equations
+    X = Ra * np.cos(phi)
+    Y = Ra * np.sin(phi)
+    Z = ((La/Nturns)/(2*np.pi))*(phi - phi0)
+
+    # create filament
+    filament_local = np.vstack((X, Y, Z))
+
+    # rotate and translate filament, if necessary
+    R = bfield.roto(EulerAngles)
+    filament_rotated = R @ filament_local
+    filament = filament_rotated + Center[:, np.newaxis]
+
+    # Initialize the B-field components
+    Bx = np.zeros((X_grid.size, Y_grid.size, Z_grid.size))
+    By = np.zeros((X_grid.size, Y_grid.size, Z_grid.size))
+    Bz = np.zeros((X_grid.size, Y_grid.size, Z_grid.size))
+
+    # compute the magnetic field at each grid point
+    for i in range(len(x)):
+        for j in range(len(y)):
+            for k in range(len(z)):
+                point = np.array(x[i], y[j], z[k])
+                Bfield = bfield.biotsavart(filament, I0, point)
+                Bx[i, j, k] = Bfield[0]
+                By[i, j, k] = Bfield[1]
+                Bz[i, j, k] = Bfield[2]
+
+    return Bx, By, Bz
 
 
 def inf_helix_Hagel(Ra,La,I0, phi0, x, y, z):
