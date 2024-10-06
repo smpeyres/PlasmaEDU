@@ -1,0 +1,75 @@
+import numpy as np
+import bfield
+import matplotlib.pyplot as plt
+
+# Helical Solenoid Parameters
+I0 = 1000.0
+Ra = 0.05
+La = 0.50
+Nturns = 5.0  # Reduced to 5 turns for visualization
+Npoints = 500
+phi0 = 0.0
+phase_shift = np.pi
+Center1 = np.array([0, 0, 0.0])
+Center2 = np.array([0, 0, 0.5*La/Nturns])  # Align both helices at the same center
+EulerAngles1 = np.array([0, 0, 0]) * np.pi / 180.0
+EulerAngles2 = np.array([0, 0, 0]) * np.pi / 180.0
+
+# Define the grid
+X_grid = np.linspace(-0.10, 0.10, 20)
+Y_grid = np.linspace(-0.10, 0.10, 20)
+Z_grid = np.linspace(0.0, La, 50)
+
+# Call the undulator function with a phase shift
+Bx, By, Bz, filament1, filament2 = bfield.undulator(X_grid, Y_grid, Z_grid, I0, Ra, La, Nturns, Npoints, phi0, phase_shift, Center1, Center2, EulerAngles1, EulerAngles2)
+
+Bnorm = np.sqrt(Bx**2 + By**2 + Bz**2)
+
+# Plot the B-field magnitude in the XZ-plane
+Y_target = 0.0
+j = np.abs(Y_grid - Y_target).argmin()
+
+XX, ZZ = np.meshgrid(X_grid, Z_grid)
+
+# Create plot for magnetic field magnitude |B| in the XZ-plane
+fig1 = plt.figure(figsize=(10, 6))
+contour = plt.contourf(XX, ZZ, Bnorm[:, j, :].T, levels=50, cmap='viridis')
+plt.colorbar(contour, label='|B| [T]')
+
+# Overlay the helical filaments with better colors
+plt.plot(filament1[0, :], filament1[2, :], 'r--', linewidth=1, label='Helix 1')
+plt.plot(filament2[0, :], filament2[2, :], 'cyan', linewidth=1, label='Helix 2')  # Use cyan for better visibility
+
+# Set plot labels and title
+plt.xlabel('X [m]')
+plt.ylabel('Z [m]')
+plt.title('Magnetic Field Magnitude [T] and Staggered Helical Undulator in the XZ-plane')
+
+# Show legend once
+plt.legend()
+
+# Save and display the plot
+plt.savefig('M1-figs/ex15_undulator_XZ_Bnorm_staggered.png', dpi=600)
+plt.show()
+
+# Create 3D figure
+fig2 = plt.figure(figsize=(10, 6))
+ax = fig2.add_subplot(111, projection='3d')
+
+# Plot the first helix (red)
+ax.plot(filament1[0, :], filament1[1, :], filament1[2, :], 'r-', label='Helix 1')
+
+# Plot the second helix (cyan)
+ax.plot(filament2[0, :], filament2[1, :], filament2[2, :], 'c-', label='Helix 2')
+
+# Set axis labels
+ax.set_xlabel('X [m]')
+ax.set_ylabel('Y [m]')
+ax.set_zlabel('Z [m]')
+ax.set_title('3D Visualization of Staggered Helical Coils')
+
+# Add a legend
+ax.legend()
+
+# Enable rotation for interactive viewing
+plt.show()
