@@ -135,23 +135,52 @@ def makeloop( Ra, Center, EulerAngles, Npoints ):
     return CurrentFilament
 
 
-def biotsavart( filament, current, point ):
-    Npoints = np.size(filament,1)
-    B = np.zeros((3,1))
-    for i in range(Npoints-1):
-        P1 = filament[:,i  ]
-        P2 = filament[:,i+1]
-        dl = P2 - P1
-        midpoint = 0.5 * (P1 + P2)
-        R  = np.transpose(point) - midpoint
-        Rm = np.sqrt( R[0,0]*R[0,0] + R[0,1]*R[0,1] + R[0,2]*R[0,2] )
-        R3 = Rm * Rm * Rm + 1.0e-12
-        dI = current * dl
-        dB = 1.0e-7 * np.cross(dI,R) / R3
-        B[0] += dB[0,0]
-        B[1] += dB[0,1]
-        B[2] += dB[0,2]
+# def biotsavart( filament, current, point ):
+#     Npoints = np.size(filament,1)
+#     B = np.zeros((3,1))
+#     for i in range(Npoints-1):
+#         P1 = filament[:,i  ]
+#         P2 = filament[:,i+1]
+#         dl = P2 - P1
+#         midpoint = 0.5 * (P1 + P2)
+#         R  = np.transpose(point) - midpoint
+#         Rm = np.sqrt( R[0,0]*R[0,0] + R[0,1]*R[0,1] + R[0,2]*R[0,2] )
+#         R3 = Rm * Rm * Rm + 1.0e-12
+#         dI = current * dl
+#         dB = 1.0e-7 * np.cross(dI,R) / R3
+#         B[0] += dB[0,0]
+#         B[1] += dB[0,1]
+#         B[2] += dB[0,2]
+#     return B[0], B[1], B[2]
+
+def biotsavart(filament, I0, point):
+    """
+    Compute the B-field at a given point due to a current filament using the Biot-Savart law.
+    """
+    mu0 = 4 * np.pi * 1e-7  # Vacuum permeability
+    B = np.zeros((3, 1))     # Initialize B-field as a 3D vector
+
+    # Loop over each segment of the filament
+    for i in range(filament.shape[1] - 1):
+        # Segment of filament
+        dL = filament[:, i+1] - filament[:, i]
+
+        # Position vector from the filament to the point of interest
+        R = point[:, 0] - filament[:, i]
+
+        # Compute the cross product dL x R
+        dL_cross_R = np.cross(dL, R)
+
+        # Distance from the filament segment to the point
+        Rm = np.linalg.norm(R)  # Correct handling of R as a 1D vector
+
+        # Apply Biot-Savart law to compute dB
+        if Rm != 0:
+            dB = (mu0 * I0 / (4 * np.pi * Rm**3)) * dL_cross_R
+            B += dB[:, np.newaxis]  # Add dB to the total B-field
+
     return B[0], B[1], B[2]
+
 
 
 def blines(y,x, filament, current):
@@ -169,7 +198,7 @@ def blines(y,x, filament, current):
     dY[3] = 0.0
     return dY
 
-def helix(x, y, z, Ra, La, Nturns, Npoints, phi0=0.0, Center=np.array([0,0,0]), EulerAngles=np.array([0,0,0])):
+def helix(x, y, z, I0, Ra, La, Nturns, Npoints, phi0=0.0, Center=np.array([0,0,0]), EulerAngles=np.array([0,0,0])):
     """
     Generate a helical filament representing a finite solenoid.
 
@@ -192,21 +221,21 @@ def helix(x, y, z, Ra, La, Nturns, Npoints, phi0=0.0, Center=np.array([0,0,0]), 
     filament_local = np.vstack((X, Y, Z))
 
     # rotate and translate filament, if necessary
-    R = bfield.roto(EulerAngles)
+    R = roto(EulerAngles)
     filament_rotated = R @ filament_local
     filament = filament_rotated + Center[:, np.newaxis]
 
     # Initialize the B-field components
-    Bx = np.zeros((X_grid.size, Y_grid.size, Z_grid.size))
-    By = np.zeros((X_grid.size, Y_grid.size, Z_grid.size))
-    Bz = np.zeros((X_grid.size, Y_grid.size, Z_grid.size))
+    Bx = np.zeros((x.size, y.size, z.size))
+    By = np.zeros((x.size, y.size, z.size))
+    Bz = np.zeros((x.size, y.size, z.size))
 
     # compute the magnetic field at each grid point
     for i in range(len(x)):
         for j in range(len(y)):
             for k in range(len(z)):
-                point = np.array(x[i], y[j], z[k])
-                Bfield = bfield.biotsavart(filament, I0, point)
+                point = np.array([x[i], y[j], z[k]])
+                Bfield = biotsavart(filament, I0, point)
                 Bx[i, j, k] = Bfield[0]
                 By[i, j, k] = Bfield[1]
                 Bz[i, j, k] = Bfield[2]
