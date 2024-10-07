@@ -208,7 +208,7 @@ def biotsavart(filament, I0, point):
         dL_cross_R = np.cross(dL, R)
 
         # Distance from the midpoint of the filament segment to the point
-        Rm = np.linalg.norm(R)
+        Rm = np.linalg.norm(R) + 1.0e-12
 
         # Apply Biot-Savart law to compute dB
         if Rm != 0:
