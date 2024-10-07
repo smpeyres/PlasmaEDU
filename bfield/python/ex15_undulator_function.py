@@ -18,12 +18,15 @@ EulerAngles2 = np.array([0, 0, 0]) * np.pi / 180.0
 # Define the grid
 X_grid = np.linspace(-0.10, 0.10, 20)
 Y_grid = np.linspace(-0.10, 0.10, 20)
-Z_grid = np.linspace(0.0, La, 50)
+Z_grid = np.linspace(-0.05, La+0.05, 50)
 
 # Call the undulator function with a phase shift
 Bx, By, Bz, filament1, filament2 = bfield.undulator(X_grid, Y_grid, Z_grid, I0, Ra, La, Nturns, Npoints, phi0, phase_shift, Center1, Center2, EulerAngles1, EulerAngles2)
 
 Bnorm = np.sqrt(Bx**2 + By**2 + Bz**2)
+
+# Save the magnetic field components to a .npz file
+np.savez('M1-data/magnetic_field_components.npz', X=X_grid, Y=Y_grid, Z=Z_grid, Bx=Bx, By=By, Bz=Bz)
 
 # Plot the B-field magnitude in the XZ-plane
 Y_target = 0.0
@@ -68,12 +71,19 @@ ax.set_ylabel('Y [m]')
 ax.set_zlabel('Z [m]')
 ax.set_title('3D Visualization of Staggered Helical Coils')
 
+# Set equal scaling for all axes
+ax.set_box_aspect([1, 1, 1])  # Aspect ratio is 1:1:1
+ax.set_aspect('auto')
+ax.set_xlim([-0.1, 0.1])
+ax.set_ylim([-0.1, 0.1])
+ax.set_zlim([0, La])
+
 # Add a legend
 ax.legend()
 
 # Enable rotation for interactive viewing
+plt.savefig("M1-figs/ex15_undulator_3D_staggered.png", dpi=600)
 plt.show()
-
 
 # Create plot for magnetic field magnitude |B| in the XZ-plane
 fig3 = plt.figure(figsize=(10, 6))

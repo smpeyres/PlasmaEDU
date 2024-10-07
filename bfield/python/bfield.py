@@ -134,53 +134,6 @@ def makeloop( Ra, Center, EulerAngles, Npoints ):
         CurrentFilament[2][i] = P_LAB[2] + Center[2]
     return CurrentFilament
 
-
-# def biotsavart( filament, current, point ):
-#     Npoints = np.size(filament,1)
-#     B = np.zeros((3,1))
-#     for i in range(Npoints-1):
-#         P1 = filament[:,i  ]
-#         P2 = filament[:,i+1]
-#         dl = P2 - P1
-#         midpoint = 0.5 * (P1 + P2)
-#         R  = np.transpose(point) - midpoint
-#         Rm = np.sqrt( R[0,0]*R[0,0] + R[0,1]*R[0,1] + R[0,2]*R[0,2] )
-#         R3 = Rm * Rm * Rm + 1.0e-12
-#         dI = current * dl
-#         dB = 1.0e-7 * np.cross(dI,R) / R3
-#         B[0] += dB[0,0]
-#         B[1] += dB[0,1]
-#         B[2] += dB[0,2]
-#     return B[0], B[1], B[2]
-
-# def biotsavart(filament, I0, point):
-#     """
-#     Compute the B-field at a given point due to a current filament using the Biot-Savart law.
-#     """
-#     mu0 = 4 * np.pi * 1e-7  # Vacuum permeability
-#     B = np.zeros((3, 1))     # Initialize B-field as a 3D vector
-
-#     # Loop over each segment of the filament
-#     for i in range(filament.shape[1] - 1):
-#         # Segment of filament
-#         dL = filament[:, i+1] - filament[:, i]
-
-#         # Position vector from the filament to the point of interest
-#         R = point[:, 0] - filament[:, i]
-
-#         # Compute the cross product dL x R
-#         dL_cross_R = np.cross(dL, R)
-
-#         # Distance from the filament segment to the point
-#         Rm = np.linalg.norm(R)  # Correct handling of R as a 1D vector
-
-#         # Apply Biot-Savart law to compute dB
-#         if Rm != 0:
-#             dB = (mu0 * I0 / (4 * np.pi * Rm**3)) * dL_cross_R
-#             B += dB[:, np.newaxis]  # Add dB to the total B-field
-
-#     return B[0], B[1], B[2]
-
 def biotsavart(filament, I0, point):
     """
     Compute the B-field at a given point due to a current filament using the Biot-Savart law.
@@ -217,9 +170,6 @@ def biotsavart(filament, I0, point):
 
     return B[0], B[1], B[2]
 
-
-
-
 def blines(y,x, filament, current):
     X=y[0]
     Y=y[1]
@@ -247,7 +197,7 @@ def helix(x, y, z, I0, Ra, La, Nturns, Npoints, phi0=0.0, Center=np.array([0,0,0
     """
 
     # generate primary parameter - azimuthal angle
-    phi = np.linspace(-2*np.pi, 2*np.pi*(Nturns+1), Npoints)
+    phi = np.linspace(0.0, 2*np.pi*Nturns, Npoints)
 
     # parametric equations
     X = Ra * np.cos(phi - phi0)
@@ -261,6 +211,33 @@ def helix(x, y, z, I0, Ra, La, Nturns, Npoints, phi0=0.0, Center=np.array([0,0,0
     R = roto(EulerAngles)
     filament_rotated = R @ filament_local
     filament = filament_rotated + Center[:, np.newaxis]
+
+    # Calculate the direction vectors at the start and end of the helix
+    start_direction = filament[:, 1] - filament[:, 0]
+    end_direction = filament[:, -1] - filament[:, -2]
+
+    # Normalize the direction vectors
+    start_direction /= np.linalg.norm(start_direction)
+    end_direction /= np.linalg.norm(end_direction)
+
+    # Generate the start and end filaments with shorter lengths
+    short_length = La / 5  # Adjust this factor to control the length of the straight segments
+
+    start_filament = np.array([
+        np.linspace(filament[0, 0] - start_direction[0] * short_length, filament[0, 0], 10),
+        np.linspace(filament[1, 0] - start_direction[1] * short_length, filament[1, 0], 10),
+        np.linspace(filament[2, 0] - start_direction[2] * short_length, filament[2, 0], 10)
+    ])
+
+    end_filament = np.array([
+        np.linspace(filament[0, -1], filament[0, -1] + end_direction[0] * short_length, 10),
+        np.linspace(filament[1, -1], filament[1, -1] + end_direction[1] * short_length, 10),
+        np.linspace(filament[2, -1], filament[2, -1] + end_direction[2] * short_length, 10)
+    ])
+
+    # Combine the straight filaments with the helical filament
+    filament = np.hstack((start_filament, filament, end_filament))
+
 
     # Initialize the B-field components
     Bx = np.zeros((x.size, y.size, z.size))
