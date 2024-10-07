@@ -19,24 +19,25 @@ Angles   = np.array([0,0,0]) * np.pi/180.0
 Npoints  = 100
 filament = bfield.makeloop( Ra, Center, Angles, Npoints )
 
-current  = 1000
-X = np.linspace(  0.0,   0.1, 20 )
-Y = np.linspace( -0.05, 0.05, 20 )
-Z = 0.0
-Bnorm = np.zeros((X.size,Y.size))
+current  = 100
+X = np.linspace(  0.0,   0.1, 50 )
+Y = np.linspace(  0.0,   0.1, 50 )
+Z = np.linspace( -0.05, 0.05, 50 )
+Bnorm = np.zeros((X.size,Y.size,Z.size))
 point = np.zeros((3,1))
 
 for i in range(0,X.size):
   for j in range(0,Y.size):
-    point[0] = X[i]
-    point[1] = Y[j]
-    point[2] = Z
+    for k in range(0, Z.size):
+      point[0] = X[i]
+      point[1] = Y[j]
+      point[2] = Z[k]
     Bx, By, Bz = bfield.biotsavart( filament, current, point )
     Bnorm[i][j] = np.sqrt(Bx*Bx + By*By + Bz*Bz)
 
 plt.figure(1)
-XX,YY = np.meshgrid(X,Y)
-plt.contourf(np.transpose(XX),np.transpose(YY),Bnorm,30)
+XX,ZZ = np.meshgrid(X,Z)
+plt.contourf(np.transpose(XX),np.transpose(ZZ),Bnorm[:, j, :].T,30)
 plt.colorbar()
 plt.xlabel('R [m]')
 plt.ylabel('Z [m]')

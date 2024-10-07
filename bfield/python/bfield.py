@@ -125,7 +125,7 @@ def makeloop( Ra, Center, EulerAngles, Npoints ):
     P_LOOP   = np.zeros((3,1))
     phi = np.linspace(0.0, 2.0*np.pi, Npoints)
     for i in range(0,Npoints):
-        P_LOOP[0] =  Ra * np.cos( phi[i] )
+        P_LOOP[0] = Ra * np.cos( phi[i] )
         P_LOOP[1] =  0.0
         P_LOOP[2] = -Ra * np.sin( phi[i] )
         P_LAB = ROT_LOOP_LAB.dot( P_LOOP )
@@ -184,6 +184,7 @@ def makeloop( Ra, Center, EulerAngles, Npoints ):
 def biotsavart(filament, I0, point):
     """
     Compute the B-field at a given point due to a current filament using the Biot-Savart law.
+    Uses the midpoint of each segment for more accuracy.
     """
     mu0 = 4 * np.pi * 1e-7  # Vacuum permeability
     B = np.zeros((3, 1))     # Initialize B-field as a 3D vector
@@ -197,14 +198,17 @@ def biotsavart(filament, I0, point):
         # Segment of filament
         dL = filament[:, i+1] - filament[:, i]
 
-        # Position vector from the filament to the point of interest
-        R = point[:, 0] - filament[:, i]
+        # Calculate the midpoint of the segment
+        midpoint = 0.5 * (filament[:, i+1] + filament[:, i])
 
-        # Compute the cross product dL x R
+        # Position vector from the midpoint of the segment to the point of interest
+        R = point[:, 0] - midpoint
+
+        # Cross product between dL and R
         dL_cross_R = np.cross(dL, R)
 
-        # Distance from the filament segment to the point
-        Rm = np.linalg.norm(R)  # Correct handling of R as a 1D vector
+        # Distance from the midpoint of the filament segment to the point
+        Rm = np.linalg.norm(R)
 
         # Apply Biot-Savart law to compute dB
         if Rm != 0:
@@ -212,6 +216,8 @@ def biotsavart(filament, I0, point):
             B += dB[:, np.newaxis]  # Add dB to the total B-field
 
     return B[0], B[1], B[2]
+
+
 
 
 def blines(y,x, filament, current):
