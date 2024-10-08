@@ -3,7 +3,7 @@ import bfield
 import matplotlib.pyplot as plt
 
 # Helical Solenoid Parameters
-I0 = 1000.0
+I0 = 10000.0
 Ra = 0.05
 La = 0.50
 Nturns = 5.0  # Reduced to 5 turns for visualization
