@@ -3,105 +3,92 @@ import matplotlib.pyplot as plt
 
 kb = 1.380649e-23 # Boltzmann constant [J/K]
 
-def gaussian_pdf(x, mean, std_dev):
-    """
-    Gaussian distribution probability density function.
+def v_mag_avg(m, T):
+  """
+  Calculate the average magnitude of velocity for a 1D Maxwellian distribution.
 
-    Parameters:
-    x (float): Value at which to evaluate the PDF.
-    mean (float): Mean of the Gaussian distribution.
-    std_dev (float): Standard deviation of the Gaussian distribution.
+  Parameters:
+  m (float): Particle mass in kg.
+  T (float): Temperature of the gas in K.
 
-    Returns:
-    float: Probability density at x.
-    """
-    return (1 / (std_dev * np.sqrt(2 * np.pi))) * np.exp(-0.5 * ((x - mean) / std_dev) ** 2)
+  Returns:
+  float: Average magnitude of velocity.
+  """
+  return np.sqrt(2 * kb * T / (np.pi * m))
 
-def maxwellian_pdf(v, m, T):
-    """
-    Maxwellian distribution probability density function.
+def maxwellian_1D(vi, m, T):
+  """
+  One-dimensional Maxwellian distribution probability density function for velocity.
 
-    Parameters:
-    v (float): Value at which to evaluate the PDF.
-    m (float): Particle mass in kg
-    T (float): Temperature of the gas in K
+  Parameters:
+  vi (float): Velocity at which to evaluate the PDF within a single dimension (vx, vy, or vz)
+  m (float): Particle mass in kg
+  T (float): Temperature of the gas in K
 
-    Returns:
-    float: Probability density at v.
-    """
-    return 4 * np.pi * (m / (2 * np.pi * kb * T)) ** (3 / 2) * (v ** 2) * np.exp(-m * v ** 2 / (2 * kb * T))
+  Returns:
+  float: Probability density at vi.
 
-def generate_samples(pdf, num_samples, x_range):
-    """
-    Generate samples from a given probability density function (PDF).
+  Note:
+  The 3D Maxwellian velocity distribution is simply the product of three 1D Maxwellian distributions,
+  one for each velocity component.
+  """
+  return np.sqrt(m/(2*np.pi*kb*T)) * np.exp(-m*vi**2/(2*kb*T))
 
-    Parameters:
-    pdf (function): Probability density function to sample from.
-    num_samples (int): Number of samples to generate.
-    x_range (tuple): Range of x values to consider for sampling (min, max).
+def generate_maxwellian_velocity(m, T, num_samples):
+  """
+  Generate samples from a Maxwellian distribution probability density function (PDF).
 
-    Returns:
-    np.ndarray: Array of generated samples.
-    """
-    x_min, x_max = x_range
-    samples = []
-    max_pdf = max(pdf(x) for x in np.linspace(x_min, x_max, 1000))  # Find the maximum value of the PDF in the range
+  Parameters:
+  m (float): Particle mass in kg.
+  T (float): Temperature of the gas in K.
+  num_samples (int): Number of samples to generate.
 
-    while len(samples) < num_samples:
-        x = np.random.uniform(x_min, x_max)
-        y = np.random.uniform(0, max_pdf)
-        if y < pdf(x):
-            samples.append(x)
-    return np.array(samples)
+  Returns:
+  np.ndarray: Array of generated samples.
+  """
 
-# Example usage:
-mean = 0
-std_dev = 1
-num_samples = 10000
-x_range = (-5, 5)
+  # Obtain the average magnitude of velocity
+  v_avg = v_mag_avg(m, T)
 
-# Generate samples
-samples_gauss = generate_samples(lambda x: gaussian_pdf(x, mean, std_dev), num_samples, x_range)
+  # Set boundaries for sampling
+  x_min = -5.0 * v_avg
+  x_max = 5.0 * v_avg
 
-fig1 = plt.figure(figsize=(10, 5))
-# Plot histogram of samples
-plt.hist(samples_gauss, bins=50, density=True, alpha=0.6, color='g')
+  samples = []
+  max_pdf = max(maxwellian_1D(x, m, T) for x in np.linspace(x_min, x_max, 1000))  # Find the maximum value of the PDF in the range
 
-# Plot the Gaussian PDF for comparison
-x = np.linspace(x_range[0], x_range[1], 1000)
-pdf_values = gaussian_pdf(x, mean, std_dev)
-plt.plot(x, pdf_values, 'r', linewidth=2)
+  while len(samples) < num_samples:
+    x = np.random.uniform(x_min, x_max)
+    y = np.random.uniform(0, max_pdf)
+    if y < maxwellian_1D(x, m, T):
+      samples.append(x)
+  return np.array(samples)
 
-plt.title('Histogram of Samples and Gaussian PDF')
-plt.xlabel('x')
-plt.ylabel('Density')
-plt.show()
+# num_samples = 10000
+# m = 40*1.67e-27  # roughly the mass of argon in kg
+# T = 300  # temperature in K
 
-# Parameters for Maxwellian distribution
-m = 40*1.67e-27  # roughly the mass of argon in kg
-T = 300  # temperature in K
-v_range = (0, 3e3)  # velocity range in m/s
+# # Generate samples
+# samples_maxwell = generate_maxwellian_velocity(m, T, num_samples)
 
-# Generate samples
-samples_maxwell = generate_samples(lambda v: maxwellian_pdf(v, m, T), num_samples, v_range)
+# # Check that the integral over all samples approximates 1 for the Maxwellian distribution
+# hist, bin_edges = np.histogram(samples_maxwell, bins=50, density=True)
+# bin_width = bin_edges[1] - bin_edges[0]
+# integral = np.sum(hist * bin_width)
+# print(f"Integral over all samples (Maxwellian): {integral}")
 
-# Check that the integral over all samples approximates 1 for the Maxwellian distribution
-hist, bin_edges = np.histogram(samples_maxwell, bins=50, density=True)
-bin_width = bin_edges[1] - bin_edges[0]
-integral = np.sum(hist * bin_width)
-print(f"Integral over all samples (Maxwellian): {integral}")
+# fig1 = plt.figure(figsize=(10, 5))
+# # Plot histogram of samples
+# plt.hist(samples_maxwell, bins=50, density=True, alpha=0.6, color='b')
 
+# # Plot the Maxwellian PDF for comparison
+# v = np.linspace(-5.0*v_mag_avg(m,T), 5.0*v_mag_avg(m,T), 1000)
+# pdf_values_maxwell = maxwellian_1D(v, m, T)
+# plt.plot(v, pdf_values_maxwell, 'r', linewidth=2)
 
-fig2 = plt.figure(figsize=(10, 5))
-# Plot histogram of samples
-plt.hist(samples_maxwell, bins=50, density=True, alpha=0.6, color='b')
+# plt.title(f'Histogram of {num_samples} Samples and 1D Maxwellian PDF for Ar at {T} K')
+# plt.xlabel('v (m/s)')
+# plt.ylabel('Density (s/m)')
+# plt.savefig(f'1D_maxwellian_{num_samples}samples.png',dpi=600)
+# plt.show()
 
-# Plot the Maxwellian PDF for comparison
-v = np.linspace(v_range[0], v_range[1], 1000)
-pdf_values_maxwell = maxwellian_pdf(v, m, T)
-plt.plot(v, pdf_values_maxwell, 'r', linewidth=2)
-
-plt.title('Histogram of Samples and Maxwellian PDF')
-plt.xlabel('v (m/s)')
-plt.ylabel('Density')
-plt.show()
