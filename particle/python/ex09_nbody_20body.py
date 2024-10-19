@@ -1,6 +1,7 @@
 import numpy as np
 from pylab import plot, axis, show, xlim, ylim, savefig
 from scipy.integrate import odeint
+import matplotlib.pyplot as plt
 
 # Physical Constants (SI units, 2019 redefinition)
 qe   = 1.602176634e-19       # fundamental charge [C]
@@ -26,75 +27,70 @@ tb   = 2.0*np.pi*np.sqrt(a0**3/mk)  # Bohr period
 Np = 20
 
 # Charge and Mass
-q = np.concatenate( (qe*np.ones(Np/2), -qe*np.ones(Np/2) ) )
-m = np.concatenate( (mp*np.ones(Np/2),  me*np.ones(Np/2) ) )
+q = np.concatenate( (qe*np.ones(Np//2), -qe*np.ones(Np//2) ) )
+m = np.concatenate( (mp*np.ones(Np//2),  me*np.ones(Np//2) ) )
 
 # Characteristic time [s]
 T = 200.0*tb #20.0*tb
-print 'T=',T,' [s]'
+print('T=',T,' [s]')
 
 # Characteristic size of the domain [m]
 L = 100.0*a0
-print 'L=',L,' [m]'
+print('L=',L,' [m]')
 
 Rx = np.random.rand(Np)*L
 Ry = np.random.rand(Np)*L
 Rz = np.random.rand(Np)*L
-Vx = np.concatenate( ( np.zeros(Np/2), np.random.rand(Np/2)*vb/18.0 ) )
-Vy = np.concatenate( ( np.zeros(Np/2), np.random.rand(Np/2)*vb/18.0 ) )
-Vz = np.concatenate( ( np.zeros(Np/2), np.random.rand(Np/2)*vb/18.0 ) )
+Vx = np.concatenate( ( np.zeros(Np//2), np.random.rand(Np//2)*vb/18.0 ) )
+Vy = np.concatenate( ( np.zeros(Np//2), np.random.rand(Np//2)*vb/18.0 ) )
+Vz = np.concatenate( ( np.zeros(Np//2), np.random.rand(Np//2)*vb/18.0 ) )
 
 
 # Dynamic function, Newton-Lorentz Equation
 def dynamics(time,y):
 
-    rx = y[0*Np:1*Np]
-    ry = y[1*Np:2*Np]
-    rz = y[2*Np:3*Np]
+   rx = y[0*Np:1*Np]
+   ry = y[1*Np:2*Np]
+   rz = y[2*Np:3*Np]
 
-    vx = y[3*Np:4*Np]
-    vy = y[4*Np:5*Np]
-    vz = y[5*Np:6*Np]
+   vx = y[3*Np:4*Np]
+   vy = y[4*Np:5*Np]
+   vz = y[5*Np:6*Np]
 
-    # Electric field
-    Ex = 0.0
-    Ey = 0.0
-    Ez = 0.0
+   # Electric field
+   Ex = 0.0
+   Ey = 0.0
+   Ez = 0.0
 
-    # Magnetic field
-    Bx = 0.0
-    By = 0.0
-    Bz = 0.0
+   # Magnetic field
+   Bx = 0.0
+   By = 0.0
+   Bz = 0.0
 
-    ax = np.zeros(Np)
-    ay = np.zeros(Np)
-    az = np.zeros(Np)
+   ax = np.zeros(Np)
+   ay = np.zeros(Np)
+   az = np.zeros(Np)
 
-    for i in range(Np):
-       for j in range(Np):
-          if (j!=i):
+   for i in range(Np):
+      for j in range(Np):
+         if (j!=i):
 
-             rx_ij = rx[i] - rx[j]
-             ry_ij = ry[i] - ry[j]
-             rz_ij = rz[i] - rz[j]
+            rx_ij = rx[i] - rx[j]
+            ry_ij = ry[i] - ry[j]
+            rz_ij = rz[i] - rz[j]
 
-             r_ij = np.sqrt( rx_ij**2 + ry_ij**2 + rz_ij**2 ) + epsilon
+            r_ij = np.sqrt( rx_ij**2 + ry_ij**2 + rz_ij**2 ) + epsilon
 
-             Fx_ij = kc * q[i]*q[j] * rx_ij / (r_ij**3)
-             Fy_ij = kc * q[i]*q[j] * ry_ij / (r_ij**3)
-             Fz_ij = kc * q[i]*q[j] * rz_ij / (r_ij**3)
+            Fx_ij = kc * q[i]*q[j] * rx_ij / (r_ij**3)
+            Fy_ij = kc * q[i]*q[j] * ry_ij / (r_ij**3)
+            Fz_ij = kc * q[i]*q[j] * rz_ij / (r_ij**3)
 
-             ax[i] += Fx_ij/m[i]
-             ay[i] += Fy_ij/m[i]
-             az[i] += Fz_ij/m[i]
+            ax[i] += Fx_ij/m[i]
+            ay[i] += Fy_ij/m[i]
+            az[i] += Fz_ij/m[i]
 
-#       qm = q[i]/m[i]
-#
-#       ax[i] += qm*Ex + qm*(Bz*vy[i]-By*vz[i])
-#       ay[i] += qm*Ey + qm*(Bx*vz[i]-Bz*vx[i])
-#       az[i] += qm*Ez + qm*(By*vx[i]-Bx*vy[i])
 
-    return np.concatenate( (vx, vy, vz, ax, ay, az) )
+   return np.concatenate( (vx, vy, vz, ax, ay, az) )
 
 
 def ode4( f, y0, x ):
@@ -121,6 +117,7 @@ def ode4( f, y0, x ):
       k3 = h * f( x[n]+h/2.0 , y[n,:]+k2/2.0 )
       k4 = h * f( x[n]+h     , y[n,:]+k3     )
       y[n+1,:] = y[n,:] + k1/3.0 + k2/6.0 + k3/6.0 + k4/3.0
+
    return y
 
 
@@ -143,9 +140,19 @@ Vy = Y[ :, 4*Np:5*Np ]
 Vz = Y[ :, 5*Np:6*Np ]
 
 # Plot
-plot( Rx[:,0:Np/2], Ry[:,0:Np/2], 'ro-') # protons
-plot( Rx[:,Np/2:Np], Ry[:,Np/2:Np], 'b-') # electrons
+plot( Rx[:,0:Np//2], Ry[:,0:Np//2], 'ro-') # protons
+plot( Rx[:,Np//2:Np], Ry[:,Np//2:Np], 'b-') # electrons
+
+# Plot initial positions
+plot(Rx[0, 0:Np//2], Ry[0, 0:Np//2], 'ro', label='Initial Protons')  # Initial protons
+plot(Rx[0, Np//2:Np], Ry[0, Np//2:Np], 'bo', label='Initial Electrons')  # Initial electrons
+
+# Plot final positions
+plot(Rx[-1, 0:Np//2], Ry[-1, 0:Np//2], 'rs', label='Final Protons')  # Final protons
+plot(Rx[-1, Np//2:Np], Ry[-1, Np//2:Np], 'bs', label='Final Electrons')  # Final electrons
+
+plt.legend()
 xlim([ 0, L ])
 ylim([ 0, L ])
-savefig('nbody_1.png',dpi=200)
+savefig('ex09_nbody_20body.png',dpi=200)
 show()
