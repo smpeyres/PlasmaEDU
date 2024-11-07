@@ -48,7 +48,7 @@ x    = np.linspace(x1, x2, nptx)
 alphaC = -0.5
 
 # Advection velocity [m/s]
-v = 0.00
+v = 0.0
 
 # Time span [s]
 t1   = 0.0
@@ -124,12 +124,12 @@ for n in range(0,nptt):
 		plt.plot(x*1000, y-273.15, 'm', linewidth = 1.0)
 	# Surface temperature
 	T_surf[n] = y[0]
-	
+
 # 	if (n%20)==0:
-		# Run plasma model 
+		# Run plasma model
 		# os.system('./zapdos -i input_file.i')
 
-		# Get solution from plasma model 
+		# Get solution from plasma model
 		# q_flux = np.genfromtxt('read_total_heat_flux.csv')
 		# dT_dr = q_flux/kappa
 
