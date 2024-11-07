@@ -38,7 +38,7 @@ def plasma_frequency(n0):
     return np.sqrt(n0*(qe**2)/(me*eps0))
 
 # Target plasma density [particles per cubic meter]
-n0 = 1.0e28  # Example value, adjust as needed
+n0 = 1.0e24  # Example value, adjust as needed
 
 # timestep -> 10th of the plasma period
 delta_t = 2*np.pi/(10*plasma_frequency(n0))
@@ -177,7 +177,7 @@ def ode4( f, y0, x ):
 
     return y
 
-T = 1500*delta_t
+T = 150*delta_t
 # Time interval
 tspan = np.arange(0, T, delta_t)
 
@@ -308,3 +308,41 @@ def calculate_kinetic_energy(Vx, Vy, Vz, m, Np):
 
 # Call the function to calculate and print the time-averaged kinetic energy
 calculate_kinetic_energy(Vx, Vy, Vz, m, Np)
+
+# Calculate kinetic and potential energy over time
+kinetic_energy_eV = np.zeros(len(tspan))
+potential_energy_eV = np.zeros(len(tspan))
+
+for t in range(len(tspan)):
+     K = 0.0
+     U = 0.0
+     for i in range(Np):
+          v_squared = Vx[t, i]**2 + Vy[t, i]**2 + Vz[t, i]**2
+          K += 0.5 * m[i] * v_squared
+
+          for j in range(i + 1, Np):
+               rx_ij = Rx[t, i] - Rx[t, j]
+               ry_ij = Ry[t, i] - Ry[t, j]
+               rz_ij = Rz[t, i] - Rz[t, j]
+
+               # Apply minimum image convention for periodic boundary conditions
+               rx_ij -= L * np.round(rx_ij / L)
+               ry_ij -= L * np.round(ry_ij / L)
+               rz_ij -= L * np.round(rz_ij / L)
+
+               r_ij = np.sqrt(rx_ij**2 + ry_ij**2 + rz_ij**2) + epsilon
+               U += kc * q[i] * q[j] / r_ij
+
+     kinetic_energy_eV[t] = K / np.abs(qe)
+     potential_energy_eV[t] = U / qp
+
+# Plot kinetic and potential energy as a function of time on a log scale
+plt.figure()
+plt.plot(tspan*plasma_frequency(n0)/(2*np.pi), kinetic_energy_eV, label='Kinetic, $T(t)$')
+plt.plot(tspan*plasma_frequency(n0)/(2*np.pi), potential_energy_eV, label='Potential, $V(t)$')
+plt.plot(tspan*plasma_frequency(n0)/(2*np.pi), kinetic_energy_eV + potential_energy_eV, label='Total, $E(t)$')
+plt.xlabel('$t ω_{pe}/ 2 π $')
+plt.ylabel('Energy (eV)')
+plt.xlim(0, 15)
+plt.legend(loc='best')
+plt.show()
