@@ -24,9 +24,10 @@ a0   = hbar/me/lux/fine             # Bohr radius
 mk   = kc*qe*qe/me
 vb   = np.sqrt(mk/a0)               # Bohr speed
 tb   = 2.0*np.pi*np.sqrt(a0**3/mk)  # Bohr period
+kb = 1.380649e-23 # Boltzmann constant [J/K]
 
 # Number of particles
-Np = 20
+Np = 50
 
 # Charge and Mass -> protons and electrons
 q = np.concatenate( (qp*np.ones(Np//2), -qe*np.ones(Np//2) ) )
@@ -37,7 +38,7 @@ def plasma_frequency(n0):
     return np.sqrt(n0*(qe**2)/(me*eps0))
 
 # Target plasma density [particles per cubic meter]
-n0 = 1.0e20  # Example value, adjust as needed
+n0 = 1.0e28  # Example value, adjust as needed
 
 # timestep -> 10th of the plasma period
 delta_t = 2*np.pi/(10*plasma_frequency(n0))
@@ -47,9 +48,17 @@ delta_t = 2*np.pi/(10*plasma_frequency(n0))
 # plasma density = electron density = proton density
 # for quasineutrality
 L = (0.5*Np / n0)**(1/3)
-print('L=', L, '[m]')
+
+# define the mean thermal velocity
+def thermal_velocity(T, m):
+     return np.sqrt(8.0*kb*T/(np.pi*m))
 
 Tp = 11604  # Plasma temperature in K (1.0 eV)
+
+# stochastic collision frequencies
+ve = (1/L*Np)*thermal_velocity(Tp, me)
+vp = (1/L*Np)*thermal_velocity(Tp, mp)
+
 Rx = np.random.rand(Np)*L
 Ry = np.random.rand(Np)*L
 Rz = np.random.rand(Np)*L
@@ -67,6 +76,20 @@ vz_electrons = generate_maxwellian_velocity(me, Tp, Np//2)
 Vx = np.concatenate( ( vx_protons, vx_electrons ) )
 Vy = np.concatenate( ( vy_protons, vy_electrons ) )
 Vz = np.concatenate( ( vz_protons, vz_electrons ) )
+
+# Function to apply Andersen thermostat
+def apply_andersen_thermostat(vx, vy, vz, m, Tp, delta_t, ve, vp, Np):
+     for i in range(Np):
+          if i < Np // 2:  # Protons
+               if np.random.rand() < delta_t * vp:
+                    vx[i] = generate_maxwellian_velocity(mp, Tp, 1)
+                    vy[i] = generate_maxwellian_velocity(mp, Tp, 1)
+                    vz[i] = generate_maxwellian_velocity(mp, Tp, 1)
+          else:  # Electrons
+               if np.random.rand() < delta_t * ve:
+                    vx[i] = generate_maxwellian_velocity(me, Tp, 1)
+                    vy[i] = generate_maxwellian_velocity(me, Tp, 1)
+                    vz[i] = generate_maxwellian_velocity(me, Tp, 1)
 
 # Dynamic function, Newton-Lorentz Equation
 def dynamics(time,y):
@@ -149,6 +172,9 @@ def ode4( f, y0, x ):
         y[n+1, 1*Np:2*Np] = y[n+1, 1*Np:2*Np] % L
         y[n+1, 2*Np:3*Np] = y[n+1, 2*Np:3*Np] % L
 
+        # Apply Andersen thermostat
+        apply_andersen_thermostat(y[n+1, 3*Np:4*Np], y[n+1, 4*Np:5*Np], y[n+1, 5*Np:6*Np], m, Tp, delta_t, ve, vp, Np)
+
     return y
 
 T = 1500*delta_t
@@ -199,27 +225,7 @@ def plot_trajectories(Rx, Ry, L, Np):
           # Plot the last segment
           plt.plot(x[start_idx:], y[start_idx:], 'r-' if i < Np//2 else 'b-')
 
-# # Wrap the coordinates
-# Rx_wrapped = wrap_coordinates(Rx, L)
-# Ry_wrapped = wrap_coordinates(Ry, L)
 
-# # Plot trajectories
-# plot_trajectories(Rx_wrapped, Ry_wrapped, L, Np)
-
-# # Plot initial positions
-# plt.plot(Rx_wrapped[0, 0:Np//2], Ry_wrapped[0, 0:Np//2], 'ro', label='Initial Protons')  # Initial protons
-# plt.plot(Rx_wrapped[0, Np//2:Np], Ry_wrapped[0, Np//2:Np], 'bo', label='Initial Electrons')  # Initial electrons
-
-# # Plot final positions
-# plt.plot(Rx_wrapped[-1, 0:Np//2], Ry_wrapped[-1, 0:Np//2], 'rs', label='Final Protons')  # Final protons
-# plt.plot(Rx_wrapped[-1, Np//2:Np], Ry_wrapped[-1, Np//2:Np], 'bs', label='Final Electrons')  # Final electrons
-
-# plt.legend()
-# plt.xlim([0, L])
-# plt.ylim([0, L])
-# plt.title(f'$n_0$ = {n0} particles/m$^3$, $T_p$ = {Tp} K')
-# plt.savefig('ex09C_nbody_20body.png', dpi=200)
-# plt.show()
 
 # Function to calculate the angle between two vectors
 def calculate_angle(v1, v2):
