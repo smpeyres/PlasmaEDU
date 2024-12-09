@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pylab as plt
 import math
-from input_params import *
+from inputdata import *
 from scipy.optimize import curve_fit
 
 # Variables stored from imput_params
@@ -13,7 +13,7 @@ Enorm = np.sqrt(Enorm)
 tr = 2.0*np.pi / 0.5 / dV
 tr2 = tr / 1.5
 tr3 = tr / 2.0
-print tr
+print(tr)
 
 xtr = np.zeros((100)) + tr
 ytr = np.linspace(np.min(Enorm),np.max(Enorm),100)
@@ -55,24 +55,24 @@ x_max = np.zeros((len(dedx_0)))
 Enorm_max = np.zeros((len(dedx_0)))
 for i in range(len(dedx_0)):
     # x values (time 'locations')
-    x_max[i] = time_vector[dedx_0[i]]
+    x_max[i] = time_vector[int(dedx_0[i])]
 
     # y values (maxima)
-    Enorm_max[i] = Enorm[dedx_0[i]]
+    Enorm_max[i] = Enorm[int(dedx_0[i])]
 
 
 # Theoretical Damping Rate (for linear Landau damping)
 imw = np.sqrt(np.pi/8.0) * (1.0/(k**3.0)) * np.exp(-1.0/(2.0*(k**2.0)) - (3.0/2.0))
-print 'Theoretical damping rate = '+str(imw)
+print('Theoretical damping rate = '+str(imw))
 
 
 ### LEAST SQUARES FIT TO MAXIMA :  y = a*exp(-c*t)
 def func(x, a, c):
     return (a*np.exp(-c*x))
 
-
+# c is the damping rate, a is the amplitude
 popt, pcov = curve_fit(func, x_max[1:10], Enorm_max[1:10])
-print 'Numerical damping rate = '+str(popt)
+print('Numerical damping rate = '+str(popt))
 
 
 xx = np.linspace(x_max[0],x_max[-1],100)
@@ -81,14 +81,17 @@ yy = func(xx, *popt)
 
 
 
-plt.figure(figsize=(12,10))
+# E-norm needs epsilon_0 to be the correct units
+
+plt.figure()
 # plt.semilogy(time_vector,Enorm3,linewidth=2,label='Nv = 64')
 
 plt.semilogy(time_vector,Enorm,linewidth=2)
+plt.semilogy(time_vector, func(time_vector, *popt), '--', linewidth=2, color='gray', label='Numerical Damping Rate')
 # plt.plot(time_vector,yy,'--',linewidth=4,color='gray')
 # plt.scatter(x_max,Enorm_max,c='red',s=100)
 plt.ylabel('L2 Norm, Electric Field')
-plt.xlabel('Time',fontsize=20)
+plt.xlabel('Time')
 # plt.legend()
 # plt.axis([time_vector[0],time_vector[-1],np.min(Enorm),np.max(Enorm)*1.2])
 plt.show()
