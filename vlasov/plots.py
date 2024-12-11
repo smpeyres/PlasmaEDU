@@ -6,8 +6,17 @@ from scipy.optimize import curve_fit
 
 # Variables stored from imput_params
 
-Enorm = np.load('Enorm_linear_1.npy')
-Enorm = np.sqrt(Enorm)
+# Load both Eulerian and pic_1e4 data
+Enorm_eul = np.load('Enorm_linear_1.npy')
+Enorm_eul = np.sqrt(Enorm_eul)
+
+pic_1e4_data = np.load('Enorm_pic_1e4.npz')
+Enorm_pic_1e4 = np.sqrt(pic_1e4_data['Enorm'])  # Apply same sqrt as Eulerian
+time_pic_1e4 = pic_1e4_data['time']
+
+pic_1e5_data = np.load('Enorm_pic_1e5.npz')
+Enorm_pic_1e5 = np.sqrt(pic_1e5_data['Enorm'])  # Apply same sqrt as Eulerian
+time_pic_1e5 = pic_1e5_data['time']
 
 ### RECURRENCE TIME
 tr = 2.0*np.pi / 0.5 / dV
@@ -16,13 +25,13 @@ tr3 = tr / 2.0
 print(tr)
 
 xtr = np.zeros((100)) + tr
-ytr = np.linspace(np.min(Enorm),np.max(Enorm),100)
+ytr = np.linspace(np.min(Enorm_eul),np.max(Enorm_eul),100)
 
 xtr2 = np.zeros((100)) + tr2
-ytr2 = np.linspace(np.min(Enorm),np.max(Enorm),100)
+ytr2 = np.linspace(np.min(Enorm_eul),np.max(Enorm_eul),100)
 
 xtr3 = np.zeros((100)) + tr3
-ytr3 = np.linspace(np.min(Enorm),np.max(Enorm),100)
+ytr3 = np.linspace(np.min(Enorm_eul),np.max(Enorm_eul),100)
 
 ### THEORETICAL ELECTRIC FIELD
 Et = np.zeros((Nx,len(time_vector)))
@@ -35,14 +44,14 @@ for n in range(len(time_vector)):
 
 ### DAMPING RATE FITTING
 # Take derivative of Enorm
-dedx = np.zeros((len(Enorm),1))
-for i in range(1,len(Enorm)-1):
-    dedx[i] = -(Enorm[i+1] - Enorm[i-1]) / 2.0 / dt
-dedx[0] = ( 3*Enorm[0]   - 4*Enorm[1]     + Enorm[2]     ) / 2.0 / dt
-dedx[-1]  = - ( 3*Enorm[-1]  - 4*Enorm[-2]    + Enorm[-3]    ) / 2.0 / dt
+dedx = np.zeros((len(Enorm_eul),1))
+for i in range(1,len(Enorm_eul)-1):
+    dedx[i] = -(Enorm_eul[i+1] - Enorm_eul[i-1]) / 2.0 / dt
+dedx[0] = ( 3*Enorm_eul[0]   - 4*Enorm_eul[1]     + Enorm_eul[2]     ) / 2.0 / dt
+dedx[-1]  = - ( 3*Enorm_eul[-1]  - 4*Enorm_eul[-2]    + Enorm_eul[-3]    ) / 2.0 / dt
 
 # Find location of zeros (only the local maxima, not minima)
-dedx_temp = np.zeros((len(Enorm),1))
+dedx_temp = np.zeros((len(Enorm_eul),1))
 for i in range(1,len(dedx)-1):
     if (dedx[i]*dedx[i-1] < 0 and dedx[i-1]<0):
         dedx_temp[i] = i
@@ -58,7 +67,7 @@ for i in range(len(dedx_0)):
     x_max[i] = time_vector[int(dedx_0[i])]
 
     # y values (maxima)
-    Enorm_max[i] = Enorm[int(dedx_0[i])]
+    Enorm_max[i] = Enorm_eul[int(dedx_0[i])]
 
 
 # Theoretical Damping Rate (for linear Landau damping)
@@ -84,16 +93,12 @@ yy = func(xx, *popt)
 # E-norm needs epsilon_0 to be the correct units
 
 plt.figure()
-# plt.semilogy(time_vector,Enorm3,linewidth=2,label='Nv = 64')
-
-plt.semilogy(time_vector,Enorm,linewidth=2)
-plt.semilogy(time_vector, func(time_vector, *popt), '--', linewidth=2, color='gray', label='Numerical Damping Rate')
-# plt.plot(time_vector,yy,'--',linewidth=4,color='gray')
-# plt.scatter(x_max,Enorm_max,c='red',s=100)
+plt.semilogy(time_vector, Enorm_eul, linewidth=2, label='Eulerian')
+plt.semilogy(time_pic_1e4, Enorm_pic_1e4, linewidth=2, label='PIC, 1e4 Particles')
+plt.semilogy(time_pic_1e5, Enorm_pic_1e5, linewidth=2, label='PIC, 1e5 Particles')
+plt.semilogy(time_vector, func(time_vector, *popt), '--', linewidth=2,
+             color='gray', label='Numerical Damping Rate')
 plt.ylabel('L2 Norm, Electric Field')
 plt.xlabel('Time')
-# plt.legend()
-# plt.axis([time_vector[0],time_vector[-1],np.min(Enorm),np.max(Enorm)*1.2])
+plt.legend()
 plt.show()
-# plt.savefig('enorm_linear_2.png')
-# plt.close()

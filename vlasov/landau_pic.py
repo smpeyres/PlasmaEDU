@@ -123,22 +123,27 @@ def main():
 
     # Time
     dt      = 0.02   # From inputdata.py, normalized units
-    N_steps = 500
+    N_steps = 1000
 
     # Particle parameters (all normalized)
     Ze      = -1.0
     n0      = 1.0
-    N_part  = 20000
+    N_part  = 1000000 # 1e6 particles
     p2c     = n0 * L / N_part
     Qp      = Ze * p2c
 
     x_uniform = np.linspace(0, L, N_part, endpoint=False)
-    perturb = 0.1
+    perturb = 0.1  # Same as vlasov.py: nx = 1.0 - perturb*np.cos(k*X)
     x = x_uniform.copy()
-    for i in range(10):  # Iterative method to get correct density
-        density = 1.0 - perturb * np.cos(k_target * x)
-        F = np.cumsum(density) * L/np.sum(density)
-        x = np.interp(x_uniform, F, x)
+    density = 1.0 - perturb * np.cos(k_target * x)  # Match vlasov.py exactly
+    F = np.cumsum(density) * L/np.sum(density)
+    x = np.interp(x_uniform, F, x)
+
+    # Check density perturbation
+    hist, bins = np.histogram(x, bins=N_nodes, range=(0,L))
+    print(f"Density perturbation check:")
+    print(f"Min/Max density: {np.min(hist)/np.mean(hist):.3f}, {np.max(hist)/np.mean(hist):.3f}")
+    print(f"Should be close to: {1-perturb:.3f}, {1+perturb:.3f}")
 
     # Thermal velocities with sqrt(2) correction
     vx = np.random.normal(0, np.sqrt(0.5), N_part)  # Matches vlasov.py normalization
@@ -151,31 +156,51 @@ def main():
     # Time loop
     plt.figure(1)
     for n in range(N_steps):
-        # Step 1. Push particles in time
         push_particles_dt(x, vx, dt, L, dx, E_nodes, Q_nodes, Qp, Ze)
-
-        # Step 2. Solve for the Electric field
         E_nodes, phi, rho_e = efield(Q_nodes, L, dx)
 
-        # Energy diagnostic (normalized)
-        Esquare[n] = 0.5*np.sum(E_nodes**2*dx)
+        # Energy diagnostic matching vlasov.py
+        Esquare[n] = 0.5*np.trapz(E_nodes**2, x=grid)
+        Enorm = np.sqrt(Esquare)  # This is key - we need to sqrt after integration
 
-        # Plot phase space
-        plt.clf()
-        plt.plot(x, vx, 'b.', markersize=1)
-        plt.xlim([0, L])
-        plt.ylim([-6, 6])
-        plt.xlabel('x [m]')
-        plt.ylabel('v [m/s]')
-        plt.title(f'Phase Space t = {n*dt:.3f}')
-        plt.draw()
-        plt.pause(0.1)
+        # Phase space plot
+        if n % 20 == 0:  # Match vlasov.py plotting frequency
+            plt.clf()
+            plt.plot(x, vx, 'b.', markersize=1)
+            plt.xlim([0, L])
+            plt.ylim([-6, 6])
+            plt.xlabel('x')
+            plt.ylabel('v')
+            plt.title(f'Phase Space')
+            plt.draw()
+            plt.pause(0.01)
 
+                    # Plot phase space
+        if n == N_steps-1:  # At final timestep
+            plt.figure(1)
+            plt.clf()
+            plt.plot(x, vx, 'b.', markersize=1)
+            plt.xlim([0, L])
+            plt.ylim([-6, 6])
+            plt.xlabel('x')
+            plt.ylabel('v')
+            plt.title('Phase Space')
+            plt.savefig('phasespace_final_pic_1e6.png', dpi=300, bbox_inches='tight')
+
+    # Energy plot matching vlasov.py format
     plt.figure(2)
-    plt.plot(Esquare)
-    plt.xlabel('time steps')
-    plt.ylabel('Field Energy')
+    t = np.arange(N_steps)*dt
+    plt.semilogy(t, Enorm)  # Note sqrt to match vlasov normalization
+    plt.xlabel('Time')
+    plt.ylabel('L2 Norm, Electric Field')
+    plt.grid(True)
+    plt.ylim([1e-4, 10])
     plt.show()
+
+    # After time loop, save energy data
+    np.savez('Enorm_pic_1e6.npz',
+            Enorm=Enorm,
+            time=np.arange(N_steps)*dt)  # Save time array too
 
 if __name__ == '__main__':
    main()
