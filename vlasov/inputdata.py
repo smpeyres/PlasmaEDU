@@ -37,7 +37,7 @@ time_vector = np.linspace(0.0, Nt*dt, Nt)
 ###################################
 Nx   = 128              # Number of gridpoints in X
 Nv   = 128              # Number of gridpoints in V
-k    = 0.5              # Wavenumber
+k    = 0.2              # Wavenumber
 Xmax = np.pi/k
 L    = 2.0*np.pi / k
 X    = np.linspace( 0, L, Nx )

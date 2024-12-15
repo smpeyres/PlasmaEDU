@@ -115,7 +115,7 @@ def efield(Q_nodes, L, dx):
 
 def main():
     # Domain
-    k_target = 0.5
+    k_target = 0.2
     L       = 2.0*np.pi/k_target
     N_nodes = 128
     dx      = L / (N_nodes-1)

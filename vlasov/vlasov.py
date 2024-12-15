@@ -236,6 +236,16 @@ for n in range(0,Nt):
 
     Enorm[n] = 0.5*np.trapz((E*E),x=X)
 
+       # Add final state save just before end of loop
+    if n == Nt-1:  # Only at final timestep
+        plt.figure()
+        plt.pcolormesh(XX, VV/Vth1, f1[I1:I2+1,J1:J2+1], shading='auto')
+        plt.colorbar()
+        plt.xlabel('x')
+        plt.ylabel('v')
+        plt.savefig('phasespace_final_eul.png', dpi=300, bbox_inches='tight')
+        plt.close()
+
     if (np.max(Courant) >= 1.0 and cfl_space_warning == 0):
         print('WARNING: Spatial CFL factor = '+str(np.max(Courant))+'; may be unstable!')
         cfl_space_warning = 1
@@ -243,8 +253,6 @@ for n in range(0,Nt):
     if (np.max(CourantA) >= 1.0 and cfl_velocity_warning == 0):
         print('WARNING: Velocity CFL factor = '+str(np.max(CourantA))+'; may be unstable!i')
         cfl_velocity_warning = 1
-
-
 
 
 plt.close()
